@@ -1,6 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function generateTests(code, count, description) {
+  console.log("Calling:", `${API_URL}/generate-tests`);
+
   const response = await fetch(`${API_URL}/generate-tests`, {
     method: "POST",
     headers: {
@@ -15,13 +17,17 @@ export async function generateTests(code, count, description) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail?.message || "Failed to generate tests");
+    throw new Error(
+      error.detail?.message || "Failed to generate tests"
+    );
   }
 
   return response.json();
 }
 
 export async function runTests(code, tests) {
+  console.log("Calling:", `${API_URL}/run-tests`);
+
   const response = await fetch(`${API_URL}/run-tests`, {
     method: "POST",
     headers: {

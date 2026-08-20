@@ -13,6 +13,7 @@ class TestCase(BaseModel):
 
 class TestGenerationRequest(BaseModel):
     code: str = Field(min_length=1)
+    language: str = Field(pattern="^(python|java)$")
     count: int = Field(ge=1, le=100)
     description: str | None = None
 
