@@ -1,11 +1,8 @@
 import json
 import os
-from urllib import response
 
 import httpx
 from dotenv import load_dotenv
-
-from models.schemas import TestCase
 
 load_dotenv()
 
@@ -105,9 +102,7 @@ Return using this format:
                         "content": prompt,
                     },
                 ],
-                "response_format": {
-                    "type": "json_object"
-                },
+                "response_format": {"type": "json_object"},
             },
         )
 

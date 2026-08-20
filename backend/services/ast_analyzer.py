@@ -10,12 +10,12 @@ def analyze_code(code: str):
 
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                functions.append({
-                    "name": node.name,
-                    "parameters": [
-                        arg.arg for arg in node.args.args
-                    ],
-                })
+                functions.append(
+                    {
+                        "name": node.name,
+                        "parameters": [arg.arg for arg in node.args.args],
+                    }
+                )
 
             elif isinstance(node, ast.ClassDef):
                 classes.append(node.name)
@@ -28,15 +28,11 @@ def analyze_code(code: str):
         )
 
         top_level_functions = [
-            node for node in tree.body
-            if isinstance(node, ast.FunctionDef)
+            node for node in tree.body if isinstance(node, ast.FunctionDef)
         ]
 
         has_top_level_executable_code = any(
-            not isinstance(
-                node,
-                (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-            )
+            not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
             for node in tree.body
         )
 

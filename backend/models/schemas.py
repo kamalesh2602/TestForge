@@ -21,9 +21,11 @@ class TestGenerationResponse(BaseModel):
     code_type: str
     tests: list
 
+
 class ExecuteTestsRequest(BaseModel):
     code: str = Field(min_length=1)
     tests: list[dict]
+
 
 class TestResult(BaseModel):
     input: str
@@ -31,6 +33,7 @@ class TestResult(BaseModel):
     actual_output: str
     status: str
     description: str | None = None
+
 
 class ExecuteRequest(BaseModel):
     code: str = Field(min_length=1)

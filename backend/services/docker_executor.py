@@ -2,12 +2,10 @@ import io
 import tarfile
 
 import docker
-
 from services.executor import Executor
 
 
 class DockerExecutor(Executor):
-
     def __init__(self):
         self.client = docker.from_env()
 
@@ -44,7 +42,6 @@ class DockerExecutor(Executor):
                 fileobj=tar_stream,
                 mode="w",
             ) as tar:
-
                 code_info = tarfile.TarInfo("main.py")
                 code_info.size = len(code_data)
                 tar.addfile(
@@ -86,11 +83,7 @@ class DockerExecutor(Executor):
             )
 
             return {
-                "status": (
-                    "completed"
-                    if result["StatusCode"] == 0
-                    else "error"
-                ),
+                "status": ("completed" if result["StatusCode"] == 0 else "error"),
                 "output": output,
                 "exit_code": result["StatusCode"],
             }

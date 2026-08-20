@@ -6,7 +6,6 @@ function App() {
   const [count, setCount] = useState(5);
   const [description, setDescription] = useState("");
 
-  const [tests, setTests] = useState([]);
   const [results, setResults] = useState(null);
 
   const [loading, setLoading] = useState(false);
@@ -16,21 +15,11 @@ function App() {
     try {
       setLoading(true);
       setError("");
-      setTests([]);
       setResults(null);
 
-      const generated = await generateTests(
-        code,
-        count,
-        description
-      );
+      const generated = await generateTests(code, count, description);
 
-      setTests(generated.tests);
-
-      const execution = await runTests(
-        code,
-        generated.tests
-      );
+      const execution = await runTests(code, generated.tests);
 
       setResults(execution);
     } catch (err) {
@@ -43,11 +32,8 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
       <div className="mx-auto max-w-6xl">
-
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-400">
-            TestForge
-          </h1>
+          <h1 className="text-4xl font-bold text-blue-400">TestForge</h1>
 
           <p className="mt-2 text-slate-400">
             AI-powered test case generation and execution.
@@ -55,13 +41,9 @@ function App() {
         </header>
 
         <div className="grid gap-6 lg:grid-cols-2">
-
           {/* Code Input */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-
-            <h2 className="mb-4 text-xl font-semibold">
-              Your Code
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold">Your Code</h2>
 
             <textarea
               value={code}
@@ -71,7 +53,6 @@ function App() {
             />
 
             <div className="mt-4 flex gap-4">
-
               <div>
                 <label className="mb-1 block text-sm text-slate-400">
                   Test cases
@@ -99,7 +80,6 @@ function App() {
                   className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-blue-500"
                 />
               </div>
-
             </div>
 
             <button
@@ -107,9 +87,7 @@ function App() {
               disabled={loading || !code.trim()}
               className="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading
-                ? "Generating & Running..."
-                : "Generate & Run Tests"}
+              {loading ? "Generating & Running..." : "Generate & Run Tests"}
             </button>
 
             {error && (
@@ -117,15 +95,11 @@ function App() {
                 {error}
               </div>
             )}
-
           </section>
 
           {/* Results */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-
-            <h2 className="mb-4 text-xl font-semibold">
-              Test Results
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold">Test Results</h2>
 
             {!results && !loading && (
               <div className="flex h-80 items-center justify-center text-slate-500">
@@ -141,33 +115,23 @@ function App() {
 
             {results && (
               <div>
-
                 <div className="mb-5 rounded-lg border border-slate-700 bg-slate-950 p-4">
                   <div className="text-2xl font-bold">
-                    <span className="text-green-400">
-                      {results.passed}
-                    </span>{" "}
-                    / {results.total}
+                    <span className="text-green-400">{results.passed}</span> /{" "}
+                    {results.total}
                   </div>
 
-                  <div className="text-sm text-slate-400">
-                    Tests passed
-                  </div>
+                  <div className="text-sm text-slate-400">Tests passed</div>
                 </div>
 
                 <div className="max-h-[500px] space-y-3 overflow-y-auto">
-
                   {results.results.map((result, index) => (
-
                     <div
                       key={index}
                       className="rounded-lg border border-slate-700 bg-slate-950 p-4"
                     >
-
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold">
-                          Test {index + 1}
-                        </span>
+                        <span className="font-semibold">Test {index + 1}</span>
 
                         <span
                           className={
@@ -181,7 +145,6 @@ function App() {
                       </div>
 
                       <div className="mt-3 space-y-1 font-mono text-sm">
-
                         <div className="text-slate-400">
                           Input:{" "}
                           <span className="text-slate-200">
@@ -202,7 +165,6 @@ function App() {
                             {result.actual_output}
                           </span>
                         </div>
-
                       </div>
 
                       {result.description && (
@@ -210,19 +172,13 @@ function App() {
                           {result.description}
                         </p>
                       )}
-
                     </div>
-
                   ))}
-
                 </div>
               </div>
             )}
-
           </section>
-
         </div>
-
       </div>
     </div>
   );

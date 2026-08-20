@@ -1,7 +1,5 @@
 from fastapi import FastAPI, HTTPException
-
-from fastapi import FastAPI, HTTPException
-
+from fastapi.middleware.cors import CORSMiddleware
 from models.schemas import (
     CodeRequest,
     ExecuteRequest,
@@ -9,24 +7,12 @@ from models.schemas import (
     TestGenerationRequest,
     TestGenerationResponse,
 )
-
 from services.ast_analyzer import analyze_code
 from services.docker_executor import DockerExecutor
 from services.harness_generator import create_function_harness
 from services.test_generator import generate_tests
 
-from models.schemas import (
-    CodeRequest,
-    ExecuteRequest,
-    TestGenerationRequest,
-    TestGenerationResponse,
-)
-from services.ast_analyzer import analyze_code
-from services.test_generator import generate_tests
-
 app = FastAPI(title="TestForge")
-
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +20,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root():
@@ -45,10 +32,8 @@ def analyze(request: CodeRequest):
     return analyze_code(request.code)
 
 
-from services.docker_executor import DockerExecutor
-
-
 executor = DockerExecutor()
+
 
 @app.post("/execute")
 def execute(request: ExecuteRequest):
@@ -57,7 +42,6 @@ def execute(request: ExecuteRequest):
         stdin=request.stdin,
     )
 
-from models.schemas import ExecuteTestsRequest
 
 @app.post(
     "/generate-tests",
@@ -86,7 +70,7 @@ async def generate(request: TestGenerationRequest):
         "tests": tests,
     }
 
-from services.harness_generator import create_function_harness
+
 @app.post("/run-tests")
 def run_tests(request: ExecuteTestsRequest):
 
@@ -101,9 +85,7 @@ def run_tests(request: ExecuteTestsRequest):
     results = []
 
     for test in request.tests:
-
         if analysis["code_type"] == "function":
-
             function_name = analysis["functions"][0]["name"]
 
             executable_code = create_function_harness(
@@ -119,7 +101,6 @@ def run_tests(request: ExecuteTestsRequest):
             input_value = test["arguments"]
 
         else:
-
             result = executor.execute(
                 code=request.code,
                 stdin=test["input"],
@@ -129,9 +110,7 @@ def run_tests(request: ExecuteTestsRequest):
 
         actual_output = result.get("output", "").strip()
 
-        expected_output = test.get(
-            "expected_output"
-        )
+        expected_output = test.get("expected_output")
 
         if expected_output is not None:
             expected_output = expected_output.strip()
@@ -143,28 +122,23 @@ def run_tests(request: ExecuteTestsRequest):
             status = "error"
 
         elif expected_output is not None:
-            status = (
-                "passed"
-                if actual_output == expected_output
-                else "failed"
-            )
+            status = "passed" if actual_output == expected_output else "failed"
 
         else:
             status = "completed"
 
-        results.append({
-            "input": input_value,
-            "expected_output": expected_output,
-            "actual_output": actual_output,
-            "status": status,
-            "description": test.get("description"),
-        })
+        results.append(
+            {
+                "input": input_value,
+                "expected_output": expected_output,
+                "actual_output": actual_output,
+                "status": status,
+                "description": test.get("description"),
+            }
+        )
 
     return {
         "total": len(results),
-        "passed": sum(
-            r["status"] == "passed"
-            for r in results
-        ),
+        "passed": sum(r["status"] == "passed" for r in results),
         "results": results,
     }
