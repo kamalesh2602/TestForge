@@ -1,7 +1,16 @@
 import ast
+import re
 
 
-def analyze_code(code: str):
+JAVA_METHOD_PATTERN = re.compile(
+    r"(public|private|protected)?\s*"
+    r"(static\s+)?"
+    r"([\w<>\[\]]+)\s+"
+    r"(\w+)\s*"
+    r"\(([^)]*)\)"
+)
+
+def analyze_python(code: str):
     try:
         tree = ast.parse(code)
 
@@ -10,12 +19,12 @@ def analyze_code(code: str):
 
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                functions.append(
-                    {
-                        "name": node.name,
-                        "parameters": [arg.arg for arg in node.args.args],
-                    }
-                )
+                functions.append({
+                    "name": node.name,
+                    "parameters": [
+                        arg.arg for arg in node.args.args
+                    ],
+                })
 
             elif isinstance(node, ast.ClassDef):
                 classes.append(node.name)
@@ -28,11 +37,19 @@ def analyze_code(code: str):
         )
 
         top_level_functions = [
-            node for node in tree.body if isinstance(node, ast.FunctionDef)
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef)
         ]
 
         has_top_level_executable_code = any(
-            not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+            not isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                    ast.ClassDef,
+                ),
+            )
             for node in tree.body
         )
 
@@ -61,3 +78,71 @@ def analyze_code(code: str):
             "column": e.offset,
             "message": e.msg,
         }
+
+
+def analyze_code(code: str, language: str, executor=None):
+
+    if language == "python":
+        return analyze_python(code)
+
+    if language == "java":
+        return analyze_java(code, executor)
+
+    return {
+        "valid": False,
+        "error": "Unsupported language",
+    }
+
+
+import re
+
+
+def analyze_java(code: str, executor):
+
+    result = executor.validate_java(code)
+
+    if not result["valid"]:
+        return {
+            "valid": False,
+            "error": "JavaSyntaxError",
+            "message": result["stderr"],
+        }
+
+    functions = []
+
+    
+
+    for match in JAVA_METHOD_PATTERN.finditer(code):
+
+        name = match.group(4)
+
+        if name == "main":
+            continue
+
+        parameters = match.group(5).strip()
+
+        if parameters:
+            params = [
+                param.strip().split()[-1]
+                for param in parameters.split(",")
+            ]
+        else:
+            params = []
+
+        functions.append({
+            "name": name,
+            "parameters": params,
+        })
+
+    code_type = (
+        "function"
+        if functions
+        else "program"
+    )
+
+    return {
+        "valid": True,
+        "functions": functions,
+        "classes": ["Main"],
+        "code_type": code_type,
+    }

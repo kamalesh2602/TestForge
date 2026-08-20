@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class CodeRequest(BaseModel):
     code: str = Field(min_length=1)
+    language: str = Field(pattern="^(python|java)$")
 
 
 class TestCase(BaseModel):
@@ -25,6 +26,7 @@ class TestGenerationResponse(BaseModel):
 
 class ExecuteTestsRequest(BaseModel):
     code: str = Field(min_length=1)
+    language: str = Field(pattern="^(python|java)$")
     tests: list[dict]
 
 

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
 from models.schemas import (
     CodeRequest,
     ExecuteRequest,
@@ -21,6 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+executor = DockerExecutor()
+
 
 @app.get("/")
 def root():
@@ -29,10 +32,13 @@ def root():
 
 @app.post("/analyze")
 def analyze(request: CodeRequest):
-    return analyze_code(request.code)
+    analysis = analyze_code(
+        request.code,
+        request.language,
+        executor,
+    )
 
-
-executor = DockerExecutor()
+    return analysis
 
 
 @app.post("/execute")
@@ -48,8 +54,11 @@ def execute(request: ExecuteRequest):
     response_model=TestGenerationResponse,
 )
 async def generate(request: TestGenerationRequest):
-
-    analysis = analyze_code(request.code)
+    analysis = analyze_code(
+        request.code,
+        request.language,
+        executor,
+    )
 
     if not analysis["valid"]:
         raise HTTPException(
@@ -63,6 +72,7 @@ async def generate(request: TestGenerationRequest):
         description=request.description,
         code_type=analysis["code_type"],
         functions=analysis["functions"],
+        language=request.language,
     )
 
     return {
@@ -73,8 +83,11 @@ async def generate(request: TestGenerationRequest):
 
 @app.post("/run-tests")
 def run_tests(request: ExecuteTestsRequest):
-
-    analysis = analyze_code(request.code)
+    analysis = analyze_code(
+        request.code,
+        request.language,
+        executor,
+    )
 
     if not analysis["valid"]:
         raise HTTPException(
@@ -85,6 +98,7 @@ def run_tests(request: ExecuteTestsRequest):
     results = []
 
     for test in request.tests:
+
         if analysis["code_type"] == "function":
             function_name = analysis["functions"][0]["name"]
 
@@ -92,25 +106,43 @@ def run_tests(request: ExecuteTestsRequest):
                 request.code,
                 function_name,
                 test["arguments"],
+                request.language,
             )
 
-            result = executor.execute(
-                code=executable_code,
-            )
+            if request.language == "java":
+                result = executor.execute_java_function(
+                    code=executable_code,
+                )
+            else:
+                result = executor.execute(
+                    code=executable_code,
+                )
 
             input_value = test["arguments"]
 
         else:
-            result = executor.execute(
-                code=request.code,
-                stdin=test["input"],
-            )
+
+            if request.language == "java":
+                result = executor.execute_java(
+                    code=request.code,
+                    stdin=test["input"],
+                )
+            else:
+                result = executor.execute(
+                    code=request.code,
+                    stdin=test["input"],
+                )
 
             input_value = test["input"]
 
-        actual_output = result.get("output", "").strip()
+        actual_output = result.get(
+            "output",
+            "",
+        ).strip()
 
-        expected_output = test.get("expected_output")
+        expected_output = test.get(
+            "expected_output"
+        )
 
         if expected_output is not None:
             expected_output = expected_output.strip()
@@ -122,7 +154,11 @@ def run_tests(request: ExecuteTestsRequest):
             status = "error"
 
         elif expected_output is not None:
-            status = "passed" if actual_output == expected_output else "failed"
+            status = (
+                "passed"
+                if actual_output == expected_output
+                else "failed"
+            )
 
         else:
             status = "completed"
@@ -139,6 +175,9 @@ def run_tests(request: ExecuteTestsRequest):
 
     return {
         "total": len(results),
-        "passed": sum(r["status"] == "passed" for r in results),
+        "passed": sum(
+            r["status"] == "passed"
+            for r in results
+        ),
         "results": results,
     }
