@@ -1,0 +1,940 @@
+# TestForge
+
+TestForge is an AI-powered automated testing platform that analyzes source code, generates structured test cases using an LLM, executes those tests in isolated environments, and compares actual results with expected results.
+
+The current implementation supports Python and Java.
+
+## 1. What Problem Does TestForge Solve?
+
+Writing test cases manually can be repetitive, especially when a function has many possible inputs.
+
+TestForge automates this workflow:
+
+```text
+Source Code
+    |
+    v
+Code Analysis
+    |
+    v
+Understand program/function structure
+    |
+    v
+AI Test Generation
+    |
+    v
+Structured Test Cases
+    |
+    v
+Sandboxed Execution
+    |
+    v
+Expected vs Actual Output
+    |
+    v
+Test Results
+```
+
+The AI generates the tests, but execution and pass/fail validation are handled deterministically by the backend.
+
+## 2. Main Features
+
+- AI-powered test case generation
+- Python and Java support
+- Python AST-based code analysis
+- Java compilation-based validation
+- Java method detection
+- Function and program testing
+- Docker-based isolated execution
+- Judge0 execution support
+- CPU, memory, network, and timeout restrictions
+- Automated expected-vs-actual output comparison
+- Gemini with OpenRouter fallback
+- API rate limiting
+- Maximum test-count limits
+- Structured error handling
+- Environment-based configuration
+- React frontend with FastAPI backend
+
+## 3. Architecture
+
+```text
+                    React Frontend
+                          |
+                       REST/JSON
+                          |
+                          v
+                    FastAPI Backend
+                          |
+             +------------+-------------+
+             |            |             |
+             v            v             v
+        AST Analyzer   AI Service    Executor
+             |            |             |
+             |        +----+----+    +---+-------+
+             |        |         |    |           |
+             |      Gemini   OpenRouter Docker   Judge0
+             |                              |
+             +------------------------------+
+                          |
+                          v
+                    Test Results
+```
+
+The backend coordinates analysis, AI generation, execution, and validation.
+
+## 4. Project Structure
+
+```text
+TestForge/
+|
++-- frontend/
+|   +-- src/
+|   +-- package.json
+|   +-- ...
+|
++-- backend/
+|   +-- main.py
+|   |
+|   +-- models/
+|   |   +-- schemas.py
+|   |
+|   +-- services/
+|       +-- ast_analyzer.py
+|       +-- docker_executor.py
+|       +-- judge0_executor.py
+|       +-- executor_factory.py
+|       +-- executor.py
+|       +-- harness_generator.py
+|       +-- test_generator.py
+|
++-- .env.example
++-- .gitignore
++-- README.md
+```
+
+## 5. Backend Architecture
+
+The FastAPI application keeps API routes separate from analysis, generation, execution, and harness creation.
+
+```text
+main.py
+   |
+   +-- ast_analyzer.py
+   |
+   +-- test_generator.py
+   |
+   +-- harness_generator.py
+   |
+   +-- executor_factory.py
+           |
+           +-- Docker Executor
+           |
+           +-- Judge0 Executor
+```
+
+This makes the execution backend replaceable without changing the rest of the application.
+
+## 6. Python Code Analysis
+
+Python source is analyzed using the built-in `ast` module.
+
+AST means **Abstract Syntax Tree**. It represents source code as structured nodes.
+
+For:
+
+```python
+def add(a, b):
+    return a + b
+```
+
+the analyzer can identify:
+
+```text
+Function: add
+Parameters: a, b
+```
+
+TestForge walks the AST and detects:
+
+- functions
+- function parameters
+- classes
+- `input()` usage
+- whether the source is a function or complete program
+
+The analyzer categorizes Python code as:
+
+```text
+function
+program
+mixed
+```
+
+This determines how tests should later be executed.
+
+## 7. Java Code Analysis
+
+Java is handled differently.
+
+The source is first compiled using `javac` inside an isolated Java environment.
+
+If compilation fails, the code is considered invalid.
+
+After successful compilation, TestForge uses lightweight method-pattern detection to identify methods and parameters.
+
+For:
+
+```java
+public static int add(int a, int b) {
+    return a + b;
+}
+```
+
+the analyzer can produce:
+
+```text
+Function: add
+Parameters: a, b
+Code Type: function
+```
+
+This is intentionally a lightweight analyzer rather than a complete Java parser.
+
+## 8. Why Analyze Code Before AI Generation?
+
+Instead of sending only raw code to the LLM, TestForge also provides structured information obtained from analysis.
+
+For example:
+
+```text
+Language: Python
+Code Type: function
+Function: add
+Parameters: a, b
+```
+
+The pipeline becomes:
+
+```text
+Source Code
+    |
+    v
+Static Analysis
+    |
+    v
+Code Structure
+    |
+    v
+LLM Prompt
+    |
+    v
+Structured Tests
+```
+
+This gives the test-generation service more context about how the code should be tested.
+
+## 9. AI Test Generation
+
+The LLM receives information such as:
+
+- source code
+- programming language
+- code type
+- detected functions
+- parameters
+- optional description
+- requested test count
+
+The expected response is structured JSON rather than free-form text.
+
+Example:
+
+```json
+{
+  "tests": [
+    {
+      "arguments": [2, 3],
+      "expected_output": "5",
+      "description": "Normal input"
+    }
+  ]
+}
+```
+
+The backend parses this response and returns structured test cases to the frontend.
+
+## 10. Gemini and OpenRouter
+
+Gemini is the primary AI provider.
+
+OpenRouter is supported as a fallback provider.
+
+```text
+             Test Generation
+                    |
+                    v
+                 Gemini
+                    |
+                success?
+               /        \
+             yes         no
+              |           |
+              v           v
+            Tests     OpenRouter
+                          |
+                      success?
+                     /        \
+                   yes         no
+                    |           |
+                    v           v
+                  Tests       Error
+```
+
+API keys and model configuration are stored in environment variables.
+
+## 11. What Is Sandboxing?
+
+TestForge executes source code submitted by users.
+
+Submitted code must therefore be treated as **untrusted code**.
+
+Arbitrary code can potentially:
+
+- consume excessive CPU
+- consume excessive memory
+- run indefinitely
+- attempt network access
+- interfere with the host machine
+
+Running it directly inside the FastAPI process would be unsafe.
+
+**Sandboxing** means executing the untrusted program inside a restricted environment so it has limited access to the host system.
+
+## 12. Docker Sandboxing
+
+One execution backend is Docker.
+
+For Python, TestForge creates a temporary Python container.
+
+For Java, it creates a temporary Java/JDK container.
+
+```text
+FastAPI
+   |
+   | Create container
+   v
++--------------------------+
+| Docker Container         |
+|                          |
+| User Code                |
+| Input                    |
+|                          |
+| CPU limit                |
+| Memory limit             |
+| Network disabled         |
++--------------------------+
+             |
+             v
+       Execution Result
+             |
+             v
+      Container removed
+```
+
+The backend creates a temporary container, copies the source and input into it, starts execution, collects the output, and removes the container.
+
+## 13. Docker Resource Restrictions
+
+TestForge applies several restrictions.
+
+### Memory
+
+```python
+mem_limit="128m"
+```
+
+Limits memory available to the container.
+
+### CPU
+
+```python
+nano_cpus=500_000_000
+```
+
+Limits CPU resources available to the container.
+
+### Network
+
+```python
+network_disabled=True
+```
+
+Prevents executed programs from accessing the network through the container.
+
+### Timeout
+
+Execution is allowed only for a limited amount of time.
+
+If it exceeds the timeout:
+
+```text
+Container
+    |
+    v
+Timeout
+    |
+    v
+Kill container
+    |
+    v
+Return timeout result
+```
+
+This protects the system from infinite loops and long-running programs.
+
+## 14. Container Lifecycle
+
+Each execution uses a temporary container.
+
+```text
+Create
+  |
+Copy code + input
+  |
+Start
+  |
+Execute
+  |
+Collect output
+  |
+Remove
+```
+
+The container is removed with:
+
+```python
+container.remove(force=True)
+```
+
+This prevents old execution containers from accumulating.
+
+## 15. Judge0
+
+Judge0 is a code-execution service that provides an API for running source code in isolated execution environments.
+
+Instead of TestForge directly managing a Docker container, the backend can submit code and input to Judge0 and receive an execution result.
+
+```text
+TestForge Backend
+       |
+       | Code + Input
+       v
+     Judge0
+       |
+       | Execute
+       v
+ Execution Result
+       |
+       v
+TestForge Backend
+```
+
+Judge0 is useful because it provides execution infrastructure for many programming languages.
+
+## 16. Why Both Docker and Judge0?
+
+TestForge separates the executor interface from its implementations.
+
+```text
+                 Executor
+                    |
+          +---------+---------+
+          |                   |
+          v                   v
+   Docker Executor       Judge0 Executor
+```
+
+The rest of the application does not need to know the implementation details.
+
+The executor factory selects the configured executor.
+
+For example:
+
+```env
+EXECUTOR=docker
+```
+
+can select Docker.
+
+A Judge0 configuration can select the Judge0 implementation.
+
+This makes the execution layer replaceable.
+
+## 17. Function Testing and Harness Generation
+
+A complete program can normally be executed directly using input.
+
+A function needs to be called explicitly.
+
+For:
+
+```python
+def add(a, b):
+    return a + b
+```
+
+a generated test such as:
+
+```text
+arguments = [2, 3]
+```
+
+needs a harness that effectively performs:
+
+```python
+add(2, 3)
+```
+
+The harness generator creates executable code that:
+
+1. includes the user's function
+2. calls the detected function
+3. passes generated arguments
+4. prints the result
+
+```text
+User Function
+     +
+Generated Arguments
+     |
+     v
+Test Harness
+     |
+     v
+Sandbox
+     |
+     v
+Output
+```
+
+The same concept is used for Java function testing.
+
+## 18. Running Tests
+
+For each test:
+
+```text
+Test Case
+    |
+    v
+Create executable code
+    |
+    v
+Execute in sandbox
+    |
+    v
+Get actual output
+    |
+    v
+Compare with expected output
+```
+
+Possible statuses include:
+
+```text
+passed
+failed
+error
+timeout
+completed
+```
+
+Example:
+
+```json
+{
+  "input": [2, 3],
+  "expected_output": "5",
+  "actual_output": "5",
+  "status": "passed"
+}
+```
+
+## 19. Rate Limiting
+
+AI generation and code execution are expensive operations.
+
+TestForge uses SlowAPI to limit requests.
+
+Current limits:
+
+```text
+/generate-tests
+5 requests / minute / client
+
+/execute
+10 requests / minute / client
+
+/run-tests
+10 requests / minute / client
+```
+
+This helps prevent accidental or abusive excessive requests.
+
+## 20. Test Count Limits
+
+The backend also limits the amount of work in one request.
+
+Generated tests:
+
+```text
+maximum 20
+```
+
+Executed tests:
+
+```text
+maximum 20 per request
+```
+
+The protection therefore works at multiple levels:
+
+```text
+Request
+   |
+   v
+Rate Limit
+   |
+   v
+Schema Validation
+   |
+   v
+Maximum Test Count
+   |
+   v
+Execution
+```
+
+## 21. Error Handling
+
+TestForge handles several types of failures.
+
+### Invalid source code
+
+Returns a structured validation error.
+
+### AI failure
+
+If the configured AI providers fail, the API returns a `503 Service Unavailable` response instead of exposing an unhandled server traceback.
+
+### Execution timeout
+
+The container is killed and the test is marked as:
+
+```text
+timeout
+```
+
+### Java compilation error
+
+Invalid Java source is rejected during analysis.
+
+### Runtime error
+
+Program execution failures are returned as execution errors.
+
+## 22. Environment Configuration
+
+Secrets and deployment-specific configuration are not hardcoded.
+
+Example `.env`:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=your_gemini_model
+
+OPENROUTER_API_KEY=your_openrouter_api_key
+LLM_PROVIDER=gemini
+
+EXECUTOR=docker
+JUDGE0_API_URL=your_judge0_api_url
+
+FRONTEND_URL=http://localhost:5173
+```
+
+For the frontend:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+The real `.env` file must not be committed.
+
+The `.env.example` file should contain placeholders only.
+
+## 23. Running Locally
+
+### Prerequisites
+
+Install:
+
+- Node.js
+- Python 3.11+
+- uv
+- Docker Desktop
+
+If using Judge0, also configure its API URL.
+
+### Backend
+
+```bash
+cd backend
+uv sync
+```
+
+Create:
+
+```text
+backend/.env
+```
+
+using the configuration above.
+
+Start FastAPI:
+
+```bash
+uv run uvicorn main:app --reload
+```
+
+Backend:
+
+```text
+http://localhost:8000
+```
+
+Swagger API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+### Frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+The frontend should use:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+### Docker
+
+Docker Desktop must be running when using the Docker executor.
+
+Verify:
+
+```bash
+docker --version
+```
+
+and:
+
+```bash
+docker ps
+```
+
+## 24. API Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/` | GET | API health check |
+| `/analyze` | POST | Analyze source code |
+| `/execute` | POST | Execute source code |
+| `/generate-tests` | POST | Generate AI test cases |
+| `/run-tests` | POST | Execute and validate test cases |
+
+Interactive API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+## 25. Example: Function Testing
+
+Input:
+
+```python
+def add(a, b):
+    return a + b
+```
+
+Analysis:
+
+```text
+Code Type: function
+Function: add
+Parameters: a, b
+```
+
+A generated test might be:
+
+```json
+{
+  "arguments": [10, 20],
+  "expected_output": "30",
+  "description": "Normal positive inputs"
+}
+```
+
+The harness generator creates executable code that calls the function.
+
+The executor runs it in the configured sandbox.
+
+Result:
+
+```text
+Expected: 30
+Actual:   30
+Status:   passed
+```
+
+## 26. Example: Program Testing
+
+For:
+
+```python
+a = int(input())
+b = int(input())
+
+print(a + b)
+```
+
+the analyzer identifies it as a program.
+
+A test can provide:
+
+```text
+10
+20
+```
+
+The program executes inside the sandbox and produces:
+
+```text
+30
+```
+
+TestForge compares this with the expected output.
+
+## 27. Why This Architecture?
+
+The project separates the major responsibilities:
+
+```text
+Analysis
+    |
+    v
+Generation
+    |
+    v
+Execution
+    |
+    v
+Validation
+```
+
+This makes the system easier to extend.
+
+A new language can be added by extending the analysis and execution layers.
+
+A new LLM provider can be added without changing the execution system.
+
+A new execution backend can be added without changing the frontend or test-generation logic.
+
+## 28. Key Engineering Concepts Demonstrated
+
+- REST API development with FastAPI
+- Pydantic request validation
+- AST-based static analysis
+- LLM API integration
+- Structured LLM output parsing
+- Multiple AI provider handling
+- Executor abstraction
+- Docker containerization
+- Sandboxed execution of untrusted code
+- CPU and memory resource limits
+- Network isolation
+- Execution timeouts
+- Dynamic test harness generation
+- Automated output validation
+- API rate limiting
+- Environment-based configuration
+- Frontend/backend integration
+
+## 29. Current Limitations
+
+The current version intentionally keeps the scope focused.
+
+- Python and Java are currently supported.
+- Java method detection uses lightweight pattern matching.
+- AI generation depends on external LLM provider availability and quotas.
+- Persistent user accounts are not implemented.
+- Persistent test history is not implemented.
+- The project is currently intended as a development/portfolio project rather than a public arbitrary-code hosting service.
+
+## 30. Project Goal
+
+The main goal of TestForge is to explore how AI can be integrated into a practical developer workflow without allowing the AI itself to execute arbitrary code directly.
+
+The responsibilities are deliberately separated.
+
+AI handles:
+
+```text
+Code context
+     +
+Test generation
+```
+
+The deterministic backend handles:
+
+```text
+Validation
+     +
+Execution
+     +
+Output comparison
+```
+
+The complete system is therefore:
+
+```text
+                  AI
+                   |
+            Test Generation
+                   |
+                   v
+           Structured Tests
+                   |
+                   v
+          Deterministic Runner
+                   |
+                   v
+              Test Results
+```
+
+TestForge demonstrates the combination of **LLM-based developer assistance, static code analysis, isolated code execution, and conventional backend engineering** in one end-to-end application.
