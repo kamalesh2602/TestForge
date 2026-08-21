@@ -15,7 +15,7 @@ class TestCase(BaseModel):
 class TestGenerationRequest(BaseModel):
     code: str = Field(min_length=1)
     language: str = Field(pattern="^(python|java)$")
-    count: int = Field(ge=1, le=100)
+    count: int = Field(ge=1, le=20)
     description: str | None = None
 
 
@@ -27,7 +27,10 @@ class TestGenerationResponse(BaseModel):
 class ExecuteTestsRequest(BaseModel):
     code: str = Field(min_length=1)
     language: str = Field(pattern="^(python|java)$")
-    tests: list[dict]
+    tests: list[dict] = Field(
+        min_length=1,
+        max_length=20,
+    )
 
 
 class TestResult(BaseModel):

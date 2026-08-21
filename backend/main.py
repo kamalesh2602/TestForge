@@ -1,6 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
+import os
 from models.schemas import (
     CodeRequest,
     ExecuteRequest,
@@ -13,25 +17,84 @@ from services.executor_factory import get_executor
 from services.harness_generator import create_function_harness
 from services.test_generator import generate_tests
 
+
+# --------------------------------------------------
+# App
+# --------------------------------------------------
+
 app = FastAPI(title="TestForge")
+
+allow_origins=[
+    os.getenv(
+        "FRONTEND_URL",
+        "http://localhost:5173",
+    ),
+],
+
+# --------------------------------------------------
+# Rate Limiting
+# --------------------------------------------------
+
+limiter = Limiter(
+    key_func=get_remote_address,
+)
+
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(
+    request: Request,
+    exc: RateLimitExceeded,
+):
+    return {
+        "error": "Rate limit exceeded",
+        "message": "Too many requests. Please try again later.",
+    }
+
+
+# --------------------------------------------------
+# CORS
+# --------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+# --------------------------------------------------
+# Executor
+# --------------------------------------------------
+
 executor = get_executor()
 
 
+# --------------------------------------------------
+# Root
+# --------------------------------------------------
+
 @app.get("/")
 def root():
-    return {"message": "TestForge API is running"}
+    return {
+        "message": "TestForge API is running"
+    }
 
+
+# --------------------------------------------------
+# Analyze
+# --------------------------------------------------
 
 @app.post("/analyze")
-def analyze(request: CodeRequest):
+def analyze(
+    request: CodeRequest,
+):
+
     analysis = analyze_code(
         request.code,
         request.language,
@@ -41,22 +104,39 @@ def analyze(request: CodeRequest):
     return analysis
 
 
+# --------------------------------------------------
+# Execute
+# --------------------------------------------------
+
 @app.post("/execute")
-def execute(request: ExecuteRequest):
+@limiter.limit("10/minute")
+def execute(
+    request: Request,
+    code_request: ExecuteRequest,
+):
+
     return executor.execute(
-        code=request.code,
-        stdin=request.stdin,
+        code=code_request.code,
+        stdin=code_request.stdin,
     )
 
 
+# --------------------------------------------------
+# Generate Tests
+# --------------------------------------------------
 @app.post(
     "/generate-tests",
     response_model=TestGenerationResponse,
 )
-async def generate(request: TestGenerationRequest):
+@limiter.limit("5/minute")
+async def generate(
+    request: Request,
+    code_request: TestGenerationRequest,
+):
+
     analysis = analyze_code(
-        request.code,
-        request.language,
+        code_request.code,
+        code_request.language,
         executor,
     )
 
@@ -66,26 +146,46 @@ async def generate(request: TestGenerationRequest):
             detail=analysis,
         )
 
-    tests = await generate_tests(
-        code=request.code,
-        count=request.count,
-        description=request.description,
-        code_type=analysis["code_type"],
-        functions=analysis["functions"],
-        language=request.language,
-    )
+    try:
+
+        tests = await generate_tests(
+            code=code_request.code,
+            count=code_request.count,
+            description=code_request.description,
+            code_type=analysis["code_type"],
+            functions=analysis["functions"],
+            language=code_request.language,
+        )
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "AI service unavailable",
+                "message": str(e),
+            },
+        )
 
     return {
         "code_type": analysis["code_type"],
         "tests": tests,
     }
 
+# --------------------------------------------------
+# Run Tests
+# --------------------------------------------------
 
 @app.post("/run-tests")
-def run_tests(request: ExecuteTestsRequest):
+@limiter.limit("10/minute")
+def run_tests(
+    request: Request,
+    test_request: ExecuteTestsRequest,
+):
+
     analysis = analyze_code(
-        request.code,
-        request.language,
+        test_request.code,
+        test_request.language,
         executor,
     )
 
@@ -97,43 +197,64 @@ def run_tests(request: ExecuteTestsRequest):
 
     results = []
 
-    for test in request.tests:
+    for test in test_request.tests:
+
+        # ------------------------------------------
+        # Function
+        # ------------------------------------------
 
         if analysis["code_type"] == "function":
-            function_name = analysis["functions"][0]["name"]
 
-            executable_code = create_function_harness(
-                request.code,
-                function_name,
-                test["arguments"],
-                request.language,
+            function_name = (
+                analysis["functions"][0]["name"]
             )
 
-            if request.language == "java":
+            executable_code = create_function_harness(
+                test_request.code,
+                function_name,
+                test["arguments"],
+                test_request.language,
+            )
+
+            if test_request.language == "java":
+
                 result = executor.execute_java_function(
                     code=executable_code,
                 )
+
             else:
+
                 result = executor.execute(
                     code=executable_code,
                 )
 
             input_value = test["arguments"]
 
+        # ------------------------------------------
+        # Program
+        # ------------------------------------------
+
         else:
 
-            if request.language == "java":
+            if test_request.language == "java":
+
                 result = executor.execute_java(
-                    code=request.code,
+                    code=test_request.code,
                     stdin=test["input"],
                 )
+
             else:
+
                 result = executor.execute(
-                    code=request.code,
+                    code=test_request.code,
                     stdin=test["input"],
                 )
 
             input_value = test["input"]
+
+        # ------------------------------------------
+        # Compare Output
+        # ------------------------------------------
 
         actual_output = result.get(
             "output",
@@ -148,12 +269,15 @@ def run_tests(request: ExecuteTestsRequest):
             expected_output = expected_output.strip()
 
         if result["status"] == "timeout":
+
             status = "timeout"
 
         elif result["status"] == "error":
+
             status = "error"
 
         elif expected_output is not None:
+
             status = (
                 "passed"
                 if actual_output == expected_output
@@ -161,6 +285,7 @@ def run_tests(request: ExecuteTestsRequest):
             )
 
         else:
+
             status = "completed"
 
         results.append(
@@ -169,15 +294,17 @@ def run_tests(request: ExecuteTestsRequest):
                 "expected_output": expected_output,
                 "actual_output": actual_output,
                 "status": status,
-                "description": test.get("description"),
+                "description": test.get(
+                    "description"
+                ),
             }
         )
 
     return {
         "total": len(results),
         "passed": sum(
-            r["status"] == "passed"
-            for r in results
+            result["status"] == "passed"
+            for result in results
         ),
         "results": results,
     }
