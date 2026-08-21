@@ -1,10 +1,14 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
-import os
+
 from models.schemas import (
     CodeRequest,
     ExecuteRequest,
@@ -18,22 +22,11 @@ from services.harness_generator import create_function_harness
 from services.test_generator import generate_tests
 
 
-# --------------------------------------------------
-# App
-# --------------------------------------------------
+load_dotenv()
+
 
 app = FastAPI(title="TestForge")
 
-allow_origins=[
-    os.getenv(
-        "FRONTEND_URL",
-        "http://localhost:5173",
-    ),
-],
-
-# --------------------------------------------------
-# Rate Limiting
-# --------------------------------------------------
 
 limiter = Limiter(
     key_func=get_remote_address,
@@ -48,32 +41,29 @@ async def rate_limit_handler(
     request: Request,
     exc: RateLimitExceeded,
 ):
-    return {
-        "error": "Rate limit exceeded",
-        "message": "Too many requests. Please try again later.",
-    }
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "Rate limit exceeded",
+            "message": "Too many requests. Please try again later.",
+        },
+    )
 
-
-# --------------------------------------------------
-# CORS
-# --------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
+        os.getenv(
+            "FRONTEND_URL",
+            "http://localhost:5173",
+        ),
     ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# --------------------------------------------------
-# Executor
-# --------------------------------------------------
-
 executor = get_executor()
-
 
 # --------------------------------------------------
 # Root
