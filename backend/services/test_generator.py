@@ -3,13 +3,21 @@ import os
 
 import httpx
 from dotenv import load_dotenv
+from google import genai
 
 load_dotenv()
+
 
 SYSTEM_PROMPT = """
 You are an expert software testing engineer.
 
-Generate useful test cases for the provided code.
+Generate useful test cases for Python and Java code.
+
+For PROGRAM code:
+Generate stdin-based tests.
+
+For FUNCTION code:
+Generate function arguments and expected return values.
 
 Focus on:
 - normal cases
@@ -18,26 +26,22 @@ Focus on:
 - unusual inputs
 - cases likely to expose bugs
 
-For PROGRAM code:
-Generate stdin-based tests.
-
-For FUNCTION code:
-Generate function arguments and expected return values.
-
 Return ONLY valid JSON.
+
+Keep numeric values reasonable.
+Do not generate extremely large integers.
+Use practical values unless the code specifically requires larger values.
 """
 
 
-async def generate_tests(
+def build_prompt(
     code: str,
     count: int,
-    description: str | None = None,
-    code_type: str = "program",
-    functions: list | None = None,
-    language: str = "python",
-):
-
-    api_key = os.getenv("OPENROUTER_API_KEY")
+    description: str | None,
+    code_type: str,
+    functions: list | None,
+    language: str,
+) -> str:
 
     if code_type == "function":
         test_format = """
@@ -64,39 +68,91 @@ async def generate_tests(
 }
 """
 
-    prompt = f"""
+    return f"""
 Language:
 {language}
 
 Code type:
 {code_type}
 
+Functions:
+{json.dumps(functions or [])}
+
 Code:
 
 ```{language}
 {code}
-Functions:
-{json.dumps(functions or [])}
+```
 
 Generate exactly {count} test cases.
 
 Additional requirements:
 {description or "None"}
 
-IMPORTANT:
-Return ONLY a JSON object.
-The top-level object MUST contain a key named "tests".
-"tests" MUST be an array containing exactly {count} test cases.
-Do not return a number, string, array, markdown, or explanation.
-Keep all numeric test values reasonable.
-Do not generate extremely large integers.
-Use practical values such as -1000000 to 1000000 unless the code specifically requires larger values.
-
-Required format:
+Return using this format:
 
 {test_format}
+
+IMPORTANT:
+- Return ONLY JSON.
+- Do not use markdown.
+- The top-level object MUST contain "tests".
+- "tests" MUST contain exactly {count} items.
+- Do not generate extremely large integers.
+- Keep numeric test values reasonable.
 """
-    async with httpx.AsyncClient(timeout=60) as client:
+
+
+async def generate_with_gemini(
+    prompt: str,
+) -> str:
+
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "GEMINI_API_KEY is not configured."
+        )
+
+    client = genai.Client(
+        api_key=api_key
+    )
+
+    response = await client.aio.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=(
+            SYSTEM_PROMPT
+            + "\n\n"
+            + prompt
+        ),
+        config={
+            "response_mime_type": "application/json",
+        },
+    )
+
+    if not response.text:
+        raise RuntimeError(
+            "Gemini returned an empty response."
+        )
+
+    return response.text
+
+
+async def generate_with_openrouter(
+    prompt: str,
+) -> str:
+
+    api_key = os.getenv("OPENROUTER_API_KEY")
+
+    if not api_key:
+        raise RuntimeError(
+            "OPENROUTER_API_KEY is not configured."
+        )
+
+    async with httpx.AsyncClient(
+        timeout=60
+    ) as client:
+
         response = await client.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
@@ -116,14 +172,32 @@ Required format:
                     },
                 ],
                 "response_format": {
-                    "type": "json_object",
+                    "type": "json_object"
                 },
             },
         )
 
-    response.raise_for_status()
+        response.raise_for_status()
 
-    content = response.json()["choices"][0]["message"]["content"]
+        data = response.json()
+
+        content = (
+            data["choices"][0]
+            ["message"]["content"]
+        )
+
+        if not content:
+            raise RuntimeError(
+                "OpenRouter returned an empty response."
+            )
+
+        return content
+
+
+def parse_response(
+    content: str,
+    count: int,
+) -> list:
 
     try:
         data = json.loads(
@@ -134,26 +208,137 @@ Required format:
                 else value
             ),
         )
-    except (json.JSONDecodeError, ValueError) as e:
-        raise ValueError(
+
+    except (
+        json.JSONDecodeError,
+        ValueError,
+    ) as e:
+
+        raise RuntimeError(
             f"AI returned invalid JSON: {e}"
         )
 
     if not isinstance(data, dict):
-        raise ValueError(
-            "AI returned an invalid test case format."
+        raise RuntimeError(
+            "AI returned an invalid response."
         )
 
     tests = data.get("tests")
 
     if not isinstance(tests, list):
-        raise ValueError(
+        raise RuntimeError(
             "AI response does not contain a valid 'tests' list."
         )
 
     if len(tests) != count:
-        raise ValueError(
-            f"AI generated {len(tests)} tests instead of {count}."
+        raise RuntimeError(
+            f"AI generated {len(tests)} tests "
+            f"instead of {count}."
         )
 
     return tests
+
+
+async def generate_tests(
+    code: str,
+    count: int,
+    description: str | None = None,
+    code_type: str = "program",
+    functions: list | None = None,
+    language: str = "python",
+) -> list:
+
+    prompt = build_prompt(
+        code=code,
+        count=count,
+        description=description,
+        code_type=code_type,
+        functions=functions,
+        language=language,
+    )
+
+    provider = os.getenv(
+        "LLM_PROVIDER",
+        "gemini",
+    ).lower()
+
+    errors = []
+
+    if provider == "gemini":
+
+        try:
+            content = await generate_with_gemini(
+                prompt
+            )
+
+            return parse_response(
+                content,
+                count,
+            )
+
+        except Exception as e:
+            errors.append(
+                f"Gemini: {str(e)}"
+            )
+
+    elif provider == "openrouter":
+
+        try:
+            content = await generate_with_openrouter(
+                prompt
+            )
+
+            return parse_response(
+                content,
+                count,
+            )
+
+        except Exception as e:
+            errors.append(
+                f"OpenRouter: {str(e)}"
+            )
+
+    else:
+
+        errors.append(
+            f"Unknown LLM provider: {provider}"
+        )
+
+    if provider == "gemini":
+
+        try:
+            content = await generate_with_openrouter(
+                prompt
+            )
+
+            return parse_response(
+                content,
+                count,
+            )
+
+        except Exception as e:
+            errors.append(
+                f"OpenRouter fallback: {str(e)}"
+            )
+
+    elif provider == "openrouter":
+
+        try:
+            content = await generate_with_gemini(
+                prompt
+            )
+
+            return parse_response(
+                content,
+                count,
+            )
+
+        except Exception as e:
+            errors.append(
+                f"Gemini fallback: {str(e)}"
+            )
+
+    raise RuntimeError(
+        "All LLM providers failed.\n"
+        + "\n".join(errors)
+    )

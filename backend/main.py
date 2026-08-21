@@ -9,7 +9,7 @@ from models.schemas import (
     TestGenerationResponse,
 )
 from services.ast_analyzer import analyze_code
-from services.docker_executor import DockerExecutor
+from services.executor_factory import get_executor
 from services.harness_generator import create_function_harness
 from services.test_generator import generate_tests
 
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-executor = DockerExecutor()
+executor = get_executor()
 
 
 @app.get("/")
