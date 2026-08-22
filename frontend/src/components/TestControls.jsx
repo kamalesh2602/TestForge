@@ -5,6 +5,7 @@ function TestControls({
   setDescription,
   onGenerate,
   loading,
+  code,
 }) {
   return (
     <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
@@ -51,11 +52,11 @@ function TestControls({
 
       <button
         onClick={onGenerate}
-        disabled={loading}
+        disabled={loading || !code.trim()}
         className="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading
-          ? "Generating and running..."
+          ? "Generating test cases..."
           : "Generate Test Cases"}
       </button>
 

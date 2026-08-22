@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import CodeEditor from "./components/CodeEditor";
 import TestControls from "./components/TestControls";
+import TestCaseList from "./components/TestCaseList";
 import TestResults from "./components/TestResults";
 
 import {
@@ -18,11 +19,13 @@ function App() {
   const [language, setLanguage] = useState("python");
 
   const [results, setResults] = useState(null);
+  const [testCases, setTestCases] = useState([]);
+  const [codeType, setCodeType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
 
-  const handleGenerateAndRun = async () => {
+  const handleGenerate = async () => {
     try {
       setLoading(true);
       setError("");
@@ -35,13 +38,15 @@ function App() {
         language,
       );
 
-      const execution = await runTests(
-        code,
-        generated.tests,
-        language,
-      );
-
-      setResults(execution);
+      setCodeType(generated.code_type);
+      setTestCases(generated.tests.map((test, index) => ({
+        id: `${Date.now()}-${index}`,
+        selected: true,
+        input: test.input ?? "",
+        arguments: JSON.stringify(test.arguments ?? []),
+        expectedOutput: test.expected_output ?? "",
+        description: test.description ?? "",
+      })));
 
     } catch (err) {
       setError(
@@ -49,6 +54,44 @@ function App() {
         "Something went wrong",
       );
 
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRunSelected = async () => {
+    const selected = testCases.filter((test) => test.selected);
+    if (!selected.length) return;
+
+    try {
+      const tests = selected.map((test) => {
+        const shared = {
+          expected_output: test.expectedOutput.trim() || null,
+          description: test.description.trim() || null,
+        };
+
+        if (codeType === "function") {
+          let argumentsValue;
+          try {
+            argumentsValue = JSON.parse(test.arguments);
+          } catch {
+            throw new Error("Function arguments must be a valid JSON array.");
+          }
+          if (!Array.isArray(argumentsValue)) {
+            throw new Error("Function arguments must be a JSON array.");
+          }
+          return { ...shared, arguments: argumentsValue };
+        }
+
+        return { ...shared, input: test.input };
+      });
+
+      setLoading(true);
+      setError("");
+      setResults(null);
+      setResults(await runTests(code, tests, language));
+    } catch (err) {
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -82,6 +125,10 @@ function App() {
               setLanguage={setLanguage}
               setResults={setResults}
               setError={setError}
+              clearTestCases={() => {
+                setTestCases([]);
+                setCodeType(null);
+              }}
             />
 
             <TestControls
@@ -89,7 +136,16 @@ function App() {
               setCount={setCount}
               description={description}
               setDescription={setDescription}
-              onGenerate={handleGenerateAndRun}
+              onGenerate={handleGenerate}
+              loading={loading}
+              code={code}
+            />
+
+            <TestCaseList
+              testCases={testCases}
+              setTestCases={setTestCases}
+              codeType={codeType}
+              onRunSelected={handleRunSelected}
               loading={loading}
             />
 

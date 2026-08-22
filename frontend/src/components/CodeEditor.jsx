@@ -7,6 +7,7 @@ function CodeEditor({
   setLanguage,
   setResults,
   setError,
+  clearTestCases,
 }) {
   return (
     <section className="rounded-xl border border-slate-800 bg-slate-900">
@@ -23,6 +24,7 @@ function CodeEditor({
               setCode("");
               setResults(null);
               setError("");
+              clearTestCases();
             }}
             className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-sm"
           >
@@ -52,6 +54,7 @@ function CodeEditor({
                   setCode(event.target.result);
                   setResults(null);
                   setError("");
+                  clearTestCases();
                 };
 
                 reader.readAsText(file);

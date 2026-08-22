@@ -11,7 +11,7 @@ function TestResults({
         </h2>
 
         <div className="flex h-[500px] items-center justify-center text-slate-400">
-          Generating and running tests...
+          Processing tests...
         </div>
       </section>
     );
