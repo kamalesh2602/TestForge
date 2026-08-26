@@ -1,130 +1,53 @@
-function TestResults({
-  results,
-  loading,
-  error,
-}) {
+import TestResultCard from "./TestResultCard";
+
+function TestResults({ results, loading, error }) {
   if (loading) {
     return (
-      <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-        <h2 className="mb-4 text-xl font-semibold">
-          Test Results
-        </h2>
-
-        <div className="flex h-[500px] items-center justify-center text-slate-400">
-          Processing tests...
-        </div>
-      </section>
+      <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 text-center font-mono text-xs text-[#8CE4FF]">
+        Executing test harness...
+      </div>
     );
   }
 
   if (error) {
     return (
-      <section className="rounded-xl border border-red-900 bg-slate-900 p-5">
-        <h2 className="mb-4 text-xl font-semibold">
-          Test Results
-        </h2>
-
-        <div className="rounded-lg border border-red-900 bg-red-950/30 p-4 text-red-400">
-          {error}
-        </div>
-      </section>
+      <div className="rounded-xl border border-[#FF5656]/50 bg-[#FF5656]/10 p-4 font-mono text-xs text-[#FF5656]">
+        {error}
+      </div>
     );
   }
 
-  if (!results) {
-    return (
-      <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-        <h2 className="mb-4 text-xl font-semibold">
-          Test Results
-        </h2>
-
-        <div className="flex h-[500px] items-center justify-center text-slate-500">
-          Generate tests to see results
-        </div>
-      </section>
-    );
-  }
+  if (!results) return null;
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
+      <div className="mb-3 flex items-center justify-between border-b border-[#1e293b] pb-3">
+        <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
+          Harness Scorecard
+        </h2>
 
-      <h2 className="mb-4 text-xl font-semibold">
-        Test Results
-      </h2>
-
-      <div className="mb-5 rounded-lg border border-slate-700 bg-slate-950 p-4">
-        <div className="text-2xl font-bold">
-          <span className="text-green-400">
-            {results.passed}
-          </span>{" "}
-          / {results.total}
-        </div>
-
-        <div className="text-sm text-slate-400">
-          Tests passed
-        </div>
-      </div>
-
-      <div className="max-h-[450px] space-y-3 overflow-y-auto">
-
-        {results.results.map((result, index) => (
-          <div
-            key={index}
-            className="rounded-lg border border-slate-700 bg-slate-950 p-4"
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-sm font-black text-[#8CE4FF]">
+            {results.passed} / {results.total}
+          </span>
+          <span
+            className="rounded px-2 py-0.5 text-[10px] font-black uppercase"
+            style={{
+              backgroundColor: results.passed === results.total ? "rgba(140, 228, 255, 0.15)" : "rgba(255, 86, 86, 0.15)",
+              color: results.passed === results.total ? "#8CE4FF" : "#FF5656",
+            }}
           >
-
-            <div className="flex justify-between">
-              <span className="font-semibold">
-                Test {index + 1}
-              </span>
-
-              <span
-                className={
-                  result.status === "passed"
-                    ? "text-green-400"
-                    : "text-red-400"
-                }
-              >
-                {result.status}
-              </span>
-            </div>
-
-            <div className="mt-3 space-y-1 font-mono text-sm text-slate-400">
-
-              <div>
-                Input:{" "}
-                <span className="text-slate-200">
-                  {JSON.stringify(result.input)}
-                </span>
-              </div>
-
-              <div>
-                Expected:{" "}
-                <span className="text-slate-200">
-                  {result.expected_output}
-                </span>
-              </div>
-
-              <div>
-                Actual:{" "}
-                <span className="text-slate-200">
-                  {result.actual_output}
-                </span>
-              </div>
-
-            </div>
-
-            {result.description && (
-              <p className="mt-3 text-xs text-slate-500">
-                {result.description}
-              </p>
-            )}
-
-          </div>
-        ))}
-
+            {results.passed === results.total ? "100% Passed" : "Failures"}
+          </span>
+        </div>
       </div>
-    </section>
+
+      <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
+        {results.results.map((result, index) => (
+          <TestResultCard key={index} result={result} index={index} />
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -9,61 +9,130 @@ function createTestCase() {
   };
 }
 
-function TestCaseList({ testCases, setTestCases, codeType, onRunSelected, loading }) {
+function TestCaseList({
+  testCases,
+  setTestCases,
+  codeType,
+  onRunSelected,
+  loading,
+}) {
   if (!codeType) return null;
 
   const selectedCount = testCases.filter((test) => test.selected).length;
-  const updateTest = (id, changes) => setTestCases((current) => current.map((test) => (
-    test.id === id ? { ...test, ...changes } : test
-  )));
+  const updateTest = (id, changes) =>
+    setTestCases((current) =>
+      current.map((test) => (test.id === id ? { ...test, ...changes } : test))
+    );
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
+      <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
         <div>
-          <h2 className="text-xl font-semibold">Test Cases</h2>
-          <p className="text-sm text-slate-400">{selectedCount} of {testCases.length} selected</p>
+          <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#FEEE91]">
+            Generated Suite
+          </h2>
+          <span className="text-[11px] text-[#8b949e]">
+            {selectedCount} of {testCases.length} selected
+          </span>
         </div>
-        <div className="flex gap-2 text-sm">
-          <button type="button" onClick={() => setTestCases((current) => current.map((test) => ({ ...test, selected: true })))} disabled={!testCases.length} className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">Select All</button>
-          <button type="button" onClick={() => setTestCases((current) => current.map((test) => ({ ...test, selected: false })))} disabled={!selectedCount} className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">Deselect All</button>
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => setTestCases((curr) => curr.map((t) => ({ ...t, selected: true })))}
+            disabled={!testCases.length}
+            className="rounded border border-[#1e293b] bg-[#090d14] px-2 py-1 text-[10px] font-bold uppercase text-[#f0f6fc] transition hover:border-[#8CE4FF]"
+          >
+            Select All
+          </button>
+          <button
+            type="button"
+            onClick={() => setTestCases((curr) => curr.map((t) => ({ ...t, selected: false })))}
+            disabled={!selectedCount}
+            className="rounded border border-[#1e293b] bg-[#090d14] px-2 py-1 text-[10px] font-bold uppercase text-[#f0f6fc] transition hover:border-[#8CE4FF]"
+          >
+            Deselect
+          </button>
         </div>
       </div>
 
-      <div className="mt-4 space-y-4">
+      <div className="mt-3 space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
         {testCases.map((test, index) => (
-          <article key={test.id} className="rounded-lg border border-slate-700 bg-slate-950 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <label className="flex items-center gap-2 font-semibold">
-                <input type="checkbox" checked={test.selected} onChange={(event) => updateTest(test.id, { selected: event.target.checked })} className="h-4 w-4 accent-blue-500" />
-                Test {index + 1}
+          <div
+            key={test.id}
+            className="rounded-lg border border-[#1e293b] bg-[#090d14] p-3 transition-colors"
+            style={{
+              borderLeftWidth: "3px",
+              borderLeftColor: test.selected ? "#FFA239" : "#1e293b",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 font-mono text-xs font-bold text-[#f0f6fc] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={test.selected}
+                  onChange={(e) => updateTest(test.id, { selected: e.target.checked })}
+                  className="h-3.5 w-3.5 rounded accent-[#FFA239]"
+                />
+                Case #{index + 1}
               </label>
-              <button type="button" onClick={() => setTestCases((current) => current.filter((item) => item.id !== test.id))} className="text-sm text-red-400 hover:text-red-300">Delete</button>
+              <button
+                type="button"
+                onClick={() => setTestCases((curr) => curr.filter((t) => t.id !== test.id))}
+                className="text-[11px] font-bold text-[#FF5656] hover:opacity-80"
+              >
+                Delete
+              </button>
             </div>
 
-            <div className="mt-3 grid gap-3">
-              <label className="text-sm text-slate-400">
-                {codeType === "function" ? "Arguments (JSON array)" : "Input"}
-                <textarea value={codeType === "function" ? test.arguments : test.input} onChange={(event) => updateTest(test.id, codeType === "function" ? { arguments: event.target.value } : { input: event.target.value })} placeholder={codeType === "function" ? '["value", 2]' : "Program input"} rows="2" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-sm text-slate-100" />
-              </label>
-              <label className="text-sm text-slate-400">
-                Expected output
-                <input value={test.expectedOutput} onChange={(event) => updateTest(test.id, { expectedOutput: event.target.value })} placeholder="Optional expected output" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100" />
-              </label>
-              <label className="text-sm text-slate-400">
-                Description
-                <input value={test.description} onChange={(event) => updateTest(test.id, { description: event.target.value })} placeholder="What this test checks" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100" />
-              </label>
+            <div className="mt-2 space-y-2">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#8b949e]">
+                  {codeType === "function" ? "Arguments (JSON Array)" : "Input"}
+                </label>
+                <textarea
+                  rows={2}
+                  className="mt-0.5 w-full rounded border border-[#1e293b] bg-[#0f172a] px-2 py-1 font-mono text-xs text-[#FEEE91] outline-none focus:border-[#8CE4FF]"
+                  value={codeType === "function" ? test.arguments : test.input}
+                  onChange={(e) =>
+                    updateTest(test.id, codeType === "function" ? { arguments: e.target.value } : { input: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[#8b949e]">
+                  Expected Output
+                </label>
+                <input
+                  className="mt-0.5 w-full rounded border border-[#1e293b] bg-[#0f172a] px-2 py-1 font-mono text-xs text-[#8CE4FF] outline-none focus:border-[#8CE4FF]"
+                  value={test.expectedOutput}
+                  onChange={(e) => updateTest(test.id, { expectedOutput: e.target.value })}
+                />
+              </div>
             </div>
-          </article>
+          </div>
         ))}
       </div>
 
-      <button type="button" onClick={() => setTestCases((current) => [...current, createTestCase()])} className="mt-4 rounded-lg border border-slate-700 px-4 py-2 font-semibold hover:bg-slate-800">Add Test Case</button>
-      <button type="button" onClick={onRunSelected} disabled={loading || !selectedCount} className="mt-3 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
-        {loading ? "Running tests..." : `Run Selected Tests (${selectedCount})`}
-      </button>
-    </section>
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setTestCases((curr) => [...curr, createTestCase()])}
+          className="flex-1 rounded-lg border border-[#1e293b] bg-[#090d14] py-2 text-xs font-bold text-[#f0f6fc] transition hover:border-[#8CE4FF]"
+        >
+          + Add Test
+        </button>
+
+        <button
+          type="button"
+          onClick={onRunSelected}
+          disabled={loading || !selectedCount}
+          className="flex-1 rounded-lg bg-[#8CE4FF] py-2 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {loading ? "Running..." : `Run Selected (${selectedCount})`}
+        </button>
+      </div>
+    </div>
   );
 }
 

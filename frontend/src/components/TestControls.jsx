@@ -8,59 +8,48 @@ function TestControls({
   code,
 }) {
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-
-      <h2 className="mb-4 text-xl font-semibold">
-        Test Configuration
+    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
+      <h2 className="mb-3 font-mono text-xs font-bold uppercase tracking-wider text-[#FFA239]">
+        Test Synthesis Setup
       </h2>
 
-      <div className="flex gap-4">
-
-        <div>
-          <label className="mb-1 block text-sm text-slate-400">
-            Test cases
+      <div className="flex gap-3">
+        <div className="w-24">
+          <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-wider text-[#8b949e]">
+            Count
           </label>
-
           <input
             type="number"
             min="1"
             max="100"
             value={count}
-            onChange={(e) =>
-              setCount(Number(e.target.value))
-            }
-            className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            onChange={(e) => setCount(Number(e.target.value))}
+            className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 font-mono text-xs font-bold text-[#FEEE91] outline-none focus:border-[#FFA239]"
           />
         </div>
 
         <div className="flex-1">
-          <label className="mb-1 block text-sm text-slate-400">
-            Description
+          <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-wider text-[#8b949e]">
+            Goal / Instructions
           </label>
-
           <input
             value={description}
-            onChange={(e) =>
-              setDescription(e.target.value)
-            }
-            placeholder="e.g. Focus on edge cases"
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="e.g. Test boundary conditions and negative inputs"
+            className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1.5 text-xs text-[#f0f6fc] placeholder-[#475569] outline-none focus:border-[#FFA239]"
           />
         </div>
-
       </div>
 
       <button
+        type="button"
         onClick={onGenerate}
         disabled={loading || !code.trim()}
-        className="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {loading
-          ? "Generating test cases..."
-          : "Generate Test Cases"}
+        {loading ? "Synthesizing Tests..." : "Generate Test Cases"}
       </button>
-
-    </section>
+    </div>
   );
 }
 

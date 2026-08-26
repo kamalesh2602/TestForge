@@ -1,22 +1,14 @@
 import { useState } from "react";
-
 import CodeEditor from "./components/CodeEditor";
 import TestControls from "./components/TestControls";
 import TestCaseList from "./components/TestCaseList";
 import TestResults from "./components/TestResults";
 import NormalExecutionControls from "./components/NormalExecutionControls";
 import NormalExecutionResults from "./components/NormalExecutionResults";
-
-import {
-  generateTests,
-  runTests,
-  executeCode,
-} from "./services/api";
-
+import { generateTests, runTests, executeCode } from "./services/api";
 
 function App() {
   const [aiMode, setAiMode] = useState(false);
-
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("python");
 
@@ -40,7 +32,6 @@ function App() {
       setNormalLoading(true);
       setNormalError("");
       setNormalResult(null);
-
       const res = await executeCode(code, stdin, language);
       setNormalResult(res);
     } catch (err) {
@@ -55,14 +46,7 @@ function App() {
       setLoading(true);
       setError("");
       setResults(null);
-
-      const generated = await generateTests(
-        code,
-        count,
-        description,
-        language,
-      );
-
+      const generated = await generateTests(code, count, description, language);
       setCodeType(generated.code_type);
       setTestCases(
         generated.tests.map((test, index) => ({
@@ -75,10 +59,7 @@ function App() {
         }))
       );
     } catch (err) {
-      setError(
-        err.message ||
-        "Something went wrong",
-      );
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -122,55 +103,54 @@ function App() {
     }
   };
 
-
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-8 text-slate-100">
-
-      <div className="mx-auto max-w-7xl">
-
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#090d14] text-[#f0f6fc]">
+      {/* Top Navbar */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#1e293b] bg-[#0f172a] px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-[#FF5656] to-[#FFA239] font-black text-black text-sm shadow">
+            TF
+          </div>
           <div>
-            <h1 className="text-4xl font-bold text-blue-400">
-              TestForge
+            <h1 className="text-lg font-black tracking-tight text-white">
+              Test<span className="text-[#8CE4FF]">Forge</span>
             </h1>
-
-            <p className="mt-2 text-slate-400">
-              {aiMode
-                ? "AI-powered test case generation and execution."
-                : "Online IDE for code execution and testing."}
-            </p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 shadow-sm">
-            <span className="text-sm font-medium text-slate-300">
-              AI Testing Mode
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={aiMode}
-              onClick={() => setAiMode(!aiMode)}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                aiMode ? "bg-blue-600" : "bg-slate-700"
+        {/* Mode Selector Pill */}
+        <div className="flex items-center gap-3 rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
+            Mode:
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={aiMode}
+            onClick={() => setAiMode(!aiMode)}
+            className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+            style={{ backgroundColor: aiMode ? "#FFA239" : "#334155" }}
+          >
+            <span
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                aiMode ? "translate-x-5" : "translate-x-0"
               }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  aiMode ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-            <span className="w-8 text-xs font-semibold uppercase text-slate-400">
-              {aiMode ? "ON" : "OFF"}
-            </span>
-          </div>
-        </header>
+            />
+          </button>
+          <span
+            className="w-16 text-xs font-black uppercase"
+            style={{ color: aiMode ? "#FFA239" : "#8CE4FF" }}
+          >
+            {aiMode ? "AI Test" : "IDE"}
+          </span>
+        </div>
+      </header>
 
-
-        <div className="grid gap-6 lg:grid-cols-2">
-
-          <div className="space-y-6">
-
+      {/* Main Studio Grid */}
+      <main className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-12">
+        {/* Left Workbench: Editor & Run Inputs */}
+        <section className="flex flex-col border-b border-[#1e293b] overflow-hidden lg:col-span-7 lg:border-b-0 lg:border-r">
+          <div className="flex-1 overflow-hidden">
             <CodeEditor
               code={code}
               setCode={setCode}
@@ -189,28 +169,11 @@ function App() {
                 setCodeType(null);
               }}
             />
+          </div>
 
-            {aiMode ? (
-              <>
-                <TestControls
-                  count={count}
-                  setCount={setCount}
-                  description={description}
-                  setDescription={setDescription}
-                  onGenerate={handleGenerate}
-                  loading={loading}
-                  code={code}
-                />
-
-                <TestCaseList
-                  testCases={testCases}
-                  setTestCases={setTestCases}
-                  codeType={codeType}
-                  onRunSelected={handleRunSelected}
-                  loading={loading}
-                />
-              </>
-            ) : (
+          {/* Standard Input & Run Controls pinned to the bottom of the editor */}
+          {!aiMode && (
+            <div className="border-t border-[#1e293b] bg-[#0f172a] p-4">
               <NormalExecutionControls
                 stdin={stdin}
                 setStdin={setStdin}
@@ -218,34 +181,47 @@ function App() {
                 loading={normalLoading}
                 code={code}
               />
-            )}
+            </div>
+          )}
+        </section>
 
-          </div>
-
-
-          <div>
-            {aiMode ? (
-              <TestResults
-                results={results}
+        {/* Right Workbench: AI Config & Execution Output Console */}
+        <section className="flex flex-col overflow-y-auto bg-[#090d14] p-4 lg:col-span-5">
+          {aiMode ? (
+            <div className="space-y-4">
+              <TestControls
+                count={count}
+                setCount={setCount}
+                description={description}
+                setDescription={setDescription}
+                onGenerate={handleGenerate}
                 loading={loading}
-                error={error}
+                code={code}
               />
-            ) : (
+
+              <TestCaseList
+                testCases={testCases}
+                setTestCases={setTestCases}
+                codeType={codeType}
+                onRunSelected={handleRunSelected}
+                loading={loading}
+              />
+
+              <TestResults results={results} loading={loading} error={error} />
+            </div>
+          ) : (
+            <div className="h-full">
               <NormalExecutionResults
                 result={normalResult}
                 loading={normalLoading}
                 error={normalError}
               />
-            )}
-          </div>
-
-        </div>
-
-      </div>
-
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }
-
 
 export default App;
