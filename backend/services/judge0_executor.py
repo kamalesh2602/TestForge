@@ -4,6 +4,8 @@ import time
 import httpx
 
 from services.executor import Executor
+from services.java_utils import find_java_main_class, find_java_primary_class
+import re
 
 
 class Judge0Executor(Executor):
@@ -126,8 +128,29 @@ class Judge0Executor(Executor):
         timeout: int = 5,
     ) -> dict:
 
+        main_class = find_java_main_class(code)
+        if not main_class:
+            return {
+                "status": "error",
+                "output": "",
+                "error": "No executable main method found. Add public static void main(String[] args) to run this Java program.",
+                "exit_code": 1,
+            }
+
+        source_code = code
+        # Convert any 'public class Name' (where Name != Main) to 'class Name'
+        # so javac Main.java in Judge0 compiles without filename mismatch errors.
+        source_code = re.sub(
+            r'\bpublic\s+class\s+([A-Za-z_]\w*)',
+            lambda m: m.group(0) if m.group(1) == "Main" else f'class {m.group(1)}',
+            source_code,
+        )
+
+        if main_class != "Main":
+            source_code += f"\n\nclass Main {{\n    public static void main(String[] args) {{\n        {main_class}.main(args);\n    }}\n}}\n"
+
         result = self._submit(
-            source_code=code,
+            source_code=source_code,
             language_id=62,
             stdin=stdin,
             timeout=timeout,
@@ -151,8 +174,19 @@ class Judge0Executor(Executor):
         code: str,
     ) -> dict:
 
+        main_class = find_java_main_class(code) or find_java_primary_class(code)
+        source_code = code
+        if main_class != "Main":
+            source_code = re.sub(
+                rf'\bpublic\s+class\s+{re.escape(main_class)}\b',
+                f'class {main_class}',
+                source_code,
+            )
+            if find_java_main_class(code):
+                source_code += f"\n\nclass Main {{\n    public static void main(String[] args) {{\n        {main_class}.main(args);\n    }}\n}}\n"
+
         result = self._submit(
-            source_code=code,
+            source_code=source_code,
             language_id=62,
             timeout=10,
         )
@@ -168,4 +202,4 @@ class Judge0Executor(Executor):
                 or ""
             ),
             "exit_code": result.get("exit_code"),
-        }
+        }

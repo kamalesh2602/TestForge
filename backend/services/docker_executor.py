@@ -4,6 +4,7 @@ import tarfile
 import docker
 
 from services.executor import Executor
+from services.java_utils import find_java_main_class, find_java_primary_class
 
 
 class DockerExecutor(Executor):
@@ -73,6 +74,7 @@ class DockerExecutor(Executor):
         code: str,
     ) -> dict:
 
+        main_class = find_java_main_class(code) or find_java_primary_class(code)
         container = None
 
         try:
@@ -80,13 +82,13 @@ class DockerExecutor(Executor):
                 image="eclipse-temurin:21-jdk",
                 command=[
                     "javac",
-                    "/app/Main.java",
+                    f"/app/{main_class}.java",
                 ],
             )
 
             tar_stream = self._create_archive(
                 {
-                    "Main.java": code.encode(),
+                    f"{main_class}.java": code.encode(),
                 }
             )
 
@@ -143,6 +145,15 @@ class DockerExecutor(Executor):
         timeout: int = 5,
     ) -> dict:
 
+        main_class = find_java_main_class(code)
+        if not main_class:
+            return {
+                "status": "error",
+                "output": "",
+                "error": "No executable main method found. Add public static void main(String[] args) to run this Java program.",
+                "exit_code": 1,
+            }
+
         container = None
 
         try:
@@ -152,8 +163,8 @@ class DockerExecutor(Executor):
                     "sh",
                     "-c",
                     (
-                        "javac /app/Main.java && "
-                        "java -cp /app Main "
+                        f"javac /app/{main_class}.java && "
+                        f"java -cp /app {main_class} "
                         "< /app/input.txt"
                     ),
                 ],
@@ -161,7 +172,7 @@ class DockerExecutor(Executor):
 
             tar_stream = self._create_archive(
                 {
-                    "Main.java": code.encode(),
+                    f"{main_class}.java": code.encode(),
                     "input.txt": stdin.encode(),
                 }
             )
@@ -188,6 +199,7 @@ class DockerExecutor(Executor):
         timeout: int = 5,
     ) -> dict:
 
+        primary_class = find_java_primary_class(code)
         container = None
 
         try:
@@ -197,7 +209,7 @@ class DockerExecutor(Executor):
                     "sh",
                     "-c",
                     (
-                        "javac /app/Main.java && "
+                        f"javac /app/{primary_class}.java && "
                         "java -cp /app TestForgeRunner"
                     ),
                 ],
@@ -205,7 +217,7 @@ class DockerExecutor(Executor):
 
             tar_stream = self._create_archive(
                 {
-                    "Main.java": code.encode(),
+                    f"{primary_class}.java": code.encode(),
                 }
             )
 

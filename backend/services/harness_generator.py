@@ -19,6 +19,9 @@ print(result)
 """
 
     if language == "java":
+        from services.java_utils import find_java_primary_class
+        primary_class = find_java_primary_class(code)
+
         args = ", ".join(
             java_literal(arg)
             for arg in arguments
@@ -30,7 +33,7 @@ print(result)
 class TestForgeRunner {{
     public static void main(String[] args) {{
         System.out.println(
-            Main.{function_name}({args})
+            {primary_class}.{function_name}({args})
         );
     }}
 }}

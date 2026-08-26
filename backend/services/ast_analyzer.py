@@ -99,6 +99,8 @@ import re
 
 def analyze_java(code: str, executor):
 
+    from services.java_utils import find_java_primary_class, find_java_main_class
+
     result = executor.validate_java(code)
 
     if not result["valid"]:
@@ -109,8 +111,6 @@ def analyze_java(code: str, executor):
         }
 
     functions = []
-
-    
 
     for match in JAVA_METHOD_PATTERN.finditer(code):
 
@@ -134,15 +134,18 @@ def analyze_java(code: str, executor):
             "parameters": params,
         })
 
+    primary_class = find_java_primary_class(code)
+    has_main = find_java_main_class(code) is not None
+
     code_type = (
         "function"
-        if functions
+        if (functions and not has_main)
         else "program"
     )
 
     return {
         "valid": True,
         "functions": functions,
-        "classes": ["Main"],
+        "classes": [primary_class],
         "code_type": code_type,
     }
