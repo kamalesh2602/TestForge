@@ -44,6 +44,10 @@ class TestResult(BaseModel):
 class ExecuteRequest(BaseModel):
     code: str = Field(min_length=1)
     stdin: str = ""
+    language: str = Field(
+        default="python",
+        pattern="^(python|java)$",
+    )
 
 
 class FunctionTestCase(BaseModel):

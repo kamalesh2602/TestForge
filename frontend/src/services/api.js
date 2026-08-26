@@ -67,3 +67,26 @@ export async function runTests(
 
   return response.json();
 }
+
+export async function executeCode(code, stdin = "", language = "python") {
+  const response = await fetch(`${API_URL}/execute`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code,
+      stdin,
+      language,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error.detail?.message || error.message || "Failed to execute code"
+    );
+  }
+
+  return response.json();
+}

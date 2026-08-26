@@ -105,10 +105,17 @@ def execute(
     code_request: ExecuteRequest,
 ):
 
+    if code_request.language == "java":
+        return executor.execute_java(
+            code=code_request.code,
+            stdin=code_request.stdin,
+        )
+
     return executor.execute(
         code=code_request.code,
         stdin=code_request.stdin,
     )
+
 
 
 # --------------------------------------------------
