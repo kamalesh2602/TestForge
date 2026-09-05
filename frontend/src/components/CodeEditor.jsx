@@ -1,4 +1,5 @@
 import Editor from "@monaco-editor/react";
+import { useEffect, useRef, useState } from "react";
 
 function CodeEditor({
   code,
@@ -9,11 +10,51 @@ function CodeEditor({
   setError,
   clearTestCases,
 }) {
+  const [savedToPc, setSavedToPc] = useState(false);
+  const savedMessageTimer = useRef(null);
+
   const javaStarterCode = `public class Main {
     public static void main(String[] args) {
         System.out.println("Hello");
     }
 }`;
+
+  useEffect(() => {
+    return () => window.clearTimeout(savedMessageTimer.current);
+  }, []);
+
+  const getJavaFilename = () => {
+    const publicClass = code.match(
+      /\bpublic\s+(?:final\s+|abstract\s+)?class\s+([A-Za-z_]\w*)/
+    );
+    const mainClass = code.match(
+      /\bclass\s+([A-Za-z_]\w*)[\s\S]*?\b(?:public\s+static|static\s+public)\s+void\s+main\s*\(/
+    );
+    const firstClass = code.match(/\bclass\s+([A-Za-z_]\w*)/);
+    const className = publicClass?.[1] || mainClass?.[1] || firstClass?.[1] || "Main";
+
+    return `${className}.java`;
+  };
+
+  const handleSave = () => {
+    const filename = language === "python" ? "main.py" : getJavaFilename();
+    const blob = new Blob([code], {
+      type: language === "python" ? "text/x-python" : "text/x-java-source",
+    });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadUrl);
+
+    setSavedToPc(true);
+    window.clearTimeout(savedMessageTimer.current);
+    savedMessageTimer.current = window.setTimeout(() => setSavedToPc(false), 2000);
+  };
 
   return (
     <div className="flex h-full flex-col bg-[#0f172a]">
@@ -79,6 +120,20 @@ function CodeEditor({
               }}
             />
           </label>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]"
+          >
+            Save
+          </button>
+
+          {savedToPc && (
+            <span className="font-mono text-[10px] font-bold text-[#8CE4FF]" role="status">
+              Saved to PC
+            </span>
+          )}
         </div>
       </div>
 
