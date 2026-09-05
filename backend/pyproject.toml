@@ -13,3 +13,8 @@ dependencies = [
     "slowapi>=0.1.10",
     "uvicorn>=0.52.4",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["TestCheck*"]

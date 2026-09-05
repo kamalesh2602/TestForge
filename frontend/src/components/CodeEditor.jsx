@@ -21,6 +21,8 @@ function CodeEditor({
     }
 }`;
 
+  const javascriptStarterCode = `console.log("Hello");`;
+
   useEffect(() => {
     return () => window.cancelAnimationFrame(saveFrame.current);
   }, []);
@@ -46,9 +48,19 @@ function CodeEditor({
 
     saveFrame.current = window.requestAnimationFrame(() => {
       try {
-        const filename = language === "python" ? "main.py" : getJavaFilename();
+        const filename =
+          language === "python"
+            ? "main.py"
+            : language === "javascript"
+              ? "main.js"
+              : getJavaFilename();
         const blob = new Blob([code], {
-          type: language === "python" ? "text/x-python" : "text/x-java-source",
+          type:
+            language === "python"
+              ? "text/x-python"
+              : language === "javascript"
+                ? "text/javascript"
+                : "text/x-java-source",
         });
         const downloadUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -99,6 +111,8 @@ function CodeEditor({
               // Set default code based on selected language
               if (newLanguage === "java") {
                 setCode(javaStarterCode);
+              } else if (newLanguage === "javascript") {
+                setCode(javascriptStarterCode);
               } else {
                 setCode("");
               }
@@ -112,15 +126,16 @@ function CodeEditor({
           >
             <option value="python">Python</option>
             <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
           </select>
 
           {/* Upload File */}
           <label className="cursor-pointer rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]">
-            Upload .{language === "python" ? "py" : "java"}
+            Upload .{language === "python" ? "py" : language === "java" ? "java" : "js"}
 
             <input
               type="file"
-              accept={language === "python" ? ".py" : ".java"}
+              accept={language === "python" ? ".py" : language === "java" ? ".java" : ".js"}
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];

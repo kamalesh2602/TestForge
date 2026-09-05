@@ -74,7 +74,15 @@ class DockerExecutor(Executor):
         code: str,
     ) -> dict:
 
+        import re
         main_class = find_java_main_class(code) or find_java_primary_class(code)
+        source_code = code
+        if main_class != "Main":
+            source_code = re.sub(
+                rf'\bpublic\s+class\s+{re.escape(main_class)}\b',
+                f'class {main_class}',
+                source_code,
+            )
         container = None
 
         try:
@@ -88,7 +96,7 @@ class DockerExecutor(Executor):
 
             tar_stream = self._create_archive(
                 {
-                    f"{main_class}.java": code.encode(),
+                    f"{main_class}.java": source_code.encode(),
                 }
             )
 

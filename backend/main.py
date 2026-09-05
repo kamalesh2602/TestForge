@@ -50,14 +50,14 @@ async def rate_limit_handler(
     )
 
 
+frontend_urls = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:5173",
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        os.getenv(
-            "FRONTEND_URL",
-            "http://localhost:5173",
-        ),
-    ],
+    allow_origins=[url.strip() for url in frontend_urls],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -107,6 +107,12 @@ def execute(
 
     if code_request.language == "java":
         return executor.execute_java(
+            code=code_request.code,
+            stdin=code_request.stdin,
+        )
+
+    if code_request.language == "javascript":
+        return executor.execute_javascript(
             code=code_request.code,
             stdin=code_request.stdin,
         )
@@ -219,6 +225,12 @@ def run_tests(
                     code=executable_code,
                 )
 
+            elif test_request.language == "javascript":
+
+                result = executor.execute_javascript_function(
+                    code=executable_code,
+                )
+
             else:
 
                 result = executor.execute(
@@ -236,6 +248,13 @@ def run_tests(
             if test_request.language == "java":
 
                 result = executor.execute_java(
+                    code=test_request.code,
+                    stdin=test["input"],
+                )
+
+            elif test_request.language == "javascript":
+
+                result = executor.execute_javascript(
                     code=test_request.code,
                     stdin=test["input"],
                 )

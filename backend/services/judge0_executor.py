@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -6,6 +7,23 @@ import httpx
 from services.executor import Executor
 from services.java_utils import find_java_main_class, find_java_primary_class
 import re
+
+
+JAVASCRIPT_INPUT_HELPER = """
+let __testforgeInputLines = [];
+let __testforgeInputIndex = 0;
+try {
+    const raw = require('fs').readFileSync(0, 'utf8');
+    __testforgeInputLines = raw.split(/\\r?\\n/);
+} catch (e) {}
+function input() {
+    if (__testforgeInputIndex < __testforgeInputLines.length) {
+        return __testforgeInputLines[__testforgeInputIndex++];
+    }
+    return '';
+}
+"""
+
 
 
 class Judge0Executor(Executor):
@@ -169,27 +187,57 @@ class Judge0Executor(Executor):
             timeout=timeout,
         )
 
+    def execute_javascript(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=JAVASCRIPT_INPUT_HELPER + code,
+            language_id=63,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    def execute_javascript_function(
+        self,
+        code: str,
+        timeout: int = 5,
+    ) -> dict:
+        return self.execute_javascript(code=code, timeout=timeout)
+
     def validate_java(
         self,
         code: str,
     ) -> dict:
 
         main_class = find_java_main_class(code) or find_java_primary_class(code)
+        has_main = find_java_main_class(code) is not None
         source_code = code
+
         if main_class != "Main":
             source_code = re.sub(
                 rf'\bpublic\s+class\s+{re.escape(main_class)}\b',
                 f'class {main_class}',
                 source_code,
             )
-            if find_java_main_class(code):
+
+        if has_main:
+            if main_class != "Main":
                 source_code += f"\n\nclass Main {{\n    public static void main(String[] args) {{\n        {main_class}.main(args);\n    }}\n}}\n"
+        else:
+            source_code += "\n\nclass Main {\n    public static void main(String[] args) {}\n}\n"
 
         result = self._submit(
             source_code=source_code,
             language_id=62,
             timeout=10,
         )
+
 
         status_id = result["status"]["id"]
 
@@ -202,4 +250,23 @@ class Judge0Executor(Executor):
                 or ""
             ),
             "exit_code": result.get("exit_code"),
-        }
+        }
+
+    def validate_javascript(
+        self,
+        code: str,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=f"new Function({json.dumps(code)});",
+            language_id=63,
+            timeout=10,
+        )
+        status_id = result["status"]["id"]
+
+        return {
+            "valid": status_id == 3,
+            "stdout": result.get("stdout") or "",
+            "stderr": result.get("stderr") or result.get("compile_output") or "",
+            "exit_code": result.get("exit_code"),
+        }

@@ -11,13 +11,16 @@ load_dotenv()
 SYSTEM_PROMPT = """
 You are an expert software testing engineer.
 
-Generate useful test cases for Python and Java code.
+Generate useful test cases for Python, Java, and JavaScript code.
 
 For PROGRAM code:
 Generate stdin-based tests.
 
 For FUNCTION code:
 Generate function arguments and expected return values.
+
+For JavaScript function code, generate JSON-compatible arguments that can be
+passed to the function with the spread operator.
 
 Focus on:
 - normal cases

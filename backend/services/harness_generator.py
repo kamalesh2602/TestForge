@@ -1,3 +1,6 @@
+import json
+
+
 def create_function_harness(
     code: str,
     function_name: str,
@@ -38,6 +41,15 @@ class TestForgeRunner {{
     }}
 }}
 """
+
+    if language == "javascript":
+        return f"""
+{code}
+
+const result = {function_name}(...{json.dumps(arguments)});
+console.log(typeof result === 'object' && result !== null ? JSON.stringify(result) : result);
+"""
+
 
     raise ValueError(
         f"Unsupported language: {language}"

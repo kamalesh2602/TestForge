@@ -18,7 +18,7 @@ function getSavedEditorState() {
     const age = Date.now() - savedState?.timestamp;
     const isValidState =
       typeof savedState?.code === "string" &&
-      ["python", "java"].includes(savedState.language) &&
+      ["python", "java", "javascript"].includes(savedState.language) &&
       Number.isFinite(savedState.timestamp) &&
       age >= 0 &&
       age < EDITOR_STATE_MAX_AGE;
