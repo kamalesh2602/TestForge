@@ -43,6 +43,7 @@ function App() {
   const [code, setCode] = useState(initialEditorState.code);
   const [language, setLanguage] = useState(initialEditorState.language);
   const hasEditorChanged = useRef(false);
+  const saveTimer = useRef(null);
 
   // Normal IDE Mode state
   const [stdin, setStdin] = useState("");
@@ -64,7 +65,7 @@ function App() {
       return undefined;
     }
 
-    const saveTimer = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       try {
         localStorage.setItem(
           EDITOR_STORAGE_KEY,
@@ -74,8 +75,9 @@ function App() {
         // The editor remains usable if localStorage cannot be written.
       }
     }, 500);
+    saveTimer.current = timer;
 
-    return () => window.clearTimeout(saveTimer);
+    return () => window.clearTimeout(timer);
   }, [code, language]);
 
   const updateCode = (value) => {
@@ -86,6 +88,20 @@ function App() {
   const updateLanguage = (value) => {
     hasEditorChanged.current = true;
     setLanguage(value);
+  };
+
+  const resetEditor = () => {
+    window.clearTimeout(saveTimer.current);
+    hasEditorChanged.current = false;
+
+    try {
+      localStorage.removeItem(EDITOR_STORAGE_KEY);
+    } catch {
+      // The editor still resets if localStorage is unavailable.
+    }
+
+    setCode("");
+    setLanguage("python");
   };
 
   const handleNormalExecute = async () => {
@@ -217,6 +233,7 @@ function App() {
               setCode={updateCode}
               language={language}
               setLanguage={updateLanguage}
+              onReset={resetEditor}
               setResults={(val) => {
                 setResults(val);
                 setNormalResult(val);

@@ -9,9 +9,11 @@ function CodeEditor({
   setResults,
   setError,
   clearTestCases,
+  onReset,
 }) {
-  const [savedToPc, setSavedToPc] = useState(false);
-  const savedMessageTimer = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = useRef(false);
+  const saveFrame = useRef(null);
 
   const javaStarterCode = `public class Main {
     public static void main(String[] args) {
@@ -20,7 +22,7 @@ function CodeEditor({
 }`;
 
   useEffect(() => {
-    return () => window.clearTimeout(savedMessageTimer.current);
+    return () => window.cancelAnimationFrame(saveFrame.current);
   }, []);
 
   const getJavaFilename = () => {
@@ -37,23 +39,31 @@ function CodeEditor({
   };
 
   const handleSave = () => {
-    const filename = language === "python" ? "main.py" : getJavaFilename();
-    const blob = new Blob([code], {
-      type: language === "python" ? "text/x-python" : "text/x-java-source",
+    if (isSavingRef.current) return;
+
+    isSavingRef.current = true;
+    setIsSaving(true);
+
+    saveFrame.current = window.requestAnimationFrame(() => {
+      try {
+        const filename = language === "python" ? "main.py" : getJavaFilename();
+        const blob = new Blob([code], {
+          type: language === "python" ? "text/x-python" : "text/x-java-source",
+        });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
+      } finally {
+        isSavingRef.current = false;
+        setIsSaving(false);
+      }
     });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = downloadUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(downloadUrl);
-
-    setSavedToPc(true);
-    window.clearTimeout(savedMessageTimer.current);
-    savedMessageTimer.current = window.setTimeout(() => setSavedToPc(false), 2000);
   };
 
   return (
@@ -65,6 +75,19 @@ function CodeEditor({
         </span>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onReset}
+            title="Reset editor"
+            aria-label="Reset editor"
+            className="flex h-7 w-7 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7" />
+              <path d="M3 4v5h5" />
+            </svg>
+          </button>
+
           {/* Language Selector */}
           <select
             value={language}
@@ -124,16 +147,11 @@ function CodeEditor({
           <button
             type="button"
             onClick={handleSave}
-            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]"
+            disabled={isSaving}
+            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Save
+            {isSaving ? "Saving..." : "Save"}
           </button>
-
-          {savedToPc && (
-            <span className="font-mono text-[10px] font-bold text-[#8CE4FF]" role="status">
-              Saved to PC
-            </span>
-          )}
         </div>
       </div>
 
