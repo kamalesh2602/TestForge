@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CodeEditor from "./components/CodeEditor";
 import TestControls from "./components/TestControls";
 import TestCaseList from "./components/TestCaseList";
@@ -7,10 +7,42 @@ import NormalExecutionControls from "./components/NormalExecutionControls";
 import NormalExecutionResults from "./components/NormalExecutionResults";
 import { generateTests, runTests, executeCode } from "./services/api";
 
+const EDITOR_STORAGE_KEY = "testforge.editor-state";
+const EDITOR_STATE_MAX_AGE = 30 * 60 * 1000;
+
+function getSavedEditorState() {
+  const defaultState = { code: "", language: "python" };
+
+  try {
+    const savedState = JSON.parse(localStorage.getItem(EDITOR_STORAGE_KEY));
+    const age = Date.now() - savedState?.timestamp;
+    const isValidState =
+      typeof savedState?.code === "string" &&
+      ["python", "java"].includes(savedState.language) &&
+      Number.isFinite(savedState.timestamp) &&
+      age >= 0 &&
+      age < EDITOR_STATE_MAX_AGE;
+
+    if (isValidState) {
+      return { code: savedState.code, language: savedState.language };
+    }
+
+    if (savedState) {
+      localStorage.removeItem(EDITOR_STORAGE_KEY);
+    }
+  } catch {
+    // The editor remains usable if localStorage is unavailable or contains invalid data.
+  }
+
+  return defaultState;
+}
+
 function App() {
+  const [initialEditorState] = useState(getSavedEditorState);
   const [aiMode, setAiMode] = useState(false);
-  const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("python");
+  const [code, setCode] = useState(initialEditorState.code);
+  const [language, setLanguage] = useState(initialEditorState.language);
+  const hasEditorChanged = useRef(false);
 
   // Normal IDE Mode state
   const [stdin, setStdin] = useState("");
@@ -26,6 +58,35 @@ function App() {
   const [codeType, setCodeType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!hasEditorChanged.current) {
+      return undefined;
+    }
+
+    const saveTimer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(
+          EDITOR_STORAGE_KEY,
+          JSON.stringify({ code, language, timestamp: Date.now() })
+        );
+      } catch {
+        // The editor remains usable if localStorage cannot be written.
+      }
+    }, 500);
+
+    return () => window.clearTimeout(saveTimer);
+  }, [code, language]);
+
+  const updateCode = (value) => {
+    hasEditorChanged.current = true;
+    setCode(value);
+  };
+
+  const updateLanguage = (value) => {
+    hasEditorChanged.current = true;
+    setLanguage(value);
+  };
 
   const handleNormalExecute = async () => {
     try {
@@ -153,9 +214,9 @@ function App() {
           <div className="flex-1 overflow-hidden">
             <CodeEditor
               code={code}
-              setCode={setCode}
+              setCode={updateCode}
               language={language}
-              setLanguage={setLanguage}
+              setLanguage={updateLanguage}
               setResults={(val) => {
                 setResults(val);
                 setNormalResult(val);
