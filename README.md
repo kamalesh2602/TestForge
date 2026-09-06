@@ -725,7 +725,8 @@ using the configuration above.
 Start FastAPI:
 
 ```bash
-uv run uvicorn main:app --reload
+uv run uvicorn main:app --reload 
+(or) python -m uvicorn main:app --reload
 ```
 
 Backend:
