@@ -1,3 +1,5 @@
+import Tooltip from "./Tooltip";
+
 function TestControls({
   count,
   setCount,
@@ -41,14 +43,16 @@ function TestControls({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onGenerate}
-        disabled={loading || !code.trim()}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {loading ? "Synthesizing Tests..." : "Generate Test Cases"}
-      </button>
+      <Tooltip content="Run Ctrl + Enter" className="mt-3 w-full">
+        <button
+          type="button"
+          onClick={onGenerate}
+          disabled={loading || !code.trim()}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {loading ? "Synthesizing Tests..." : "Generate Test Cases"}
+        </button>
+      </Tooltip>
     </div>
   );
 }

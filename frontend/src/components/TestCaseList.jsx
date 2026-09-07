@@ -1,3 +1,5 @@
+import Tooltip from "./Tooltip";
+
 function createTestCase() {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -123,14 +125,16 @@ function TestCaseList({
           + Add Test
         </button>
 
-        <button
-          type="button"
-          onClick={onRunSelected}
-          disabled={loading || !selectedCount}
-          className="flex-1 rounded-lg bg-[#8CE4FF] py-2 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {loading ? "Running..." : `Run Selected (${selectedCount})`}
-        </button>
+        <Tooltip content="Run Ctrl + Enter" className="flex-1">
+          <button
+            type="button"
+            onClick={onRunSelected}
+            disabled={loading || !selectedCount}
+            className="w-full rounded-lg bg-[#8CE4FF] py-2 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {loading ? "Running..." : `Run Selected (${selectedCount})`}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

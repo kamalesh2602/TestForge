@@ -10,10 +10,16 @@ function CodeEditor({
   setError,
   clearTestCases,
   onReset,
+  onRun,
 }) {
   const [isSaving, setIsSaving] = useState(false);
   const isSavingRef = useRef(false);
   const saveFrame = useRef(null);
+  const onRunRef = useRef(onRun);
+
+  useEffect(() => {
+    onRunRef.current = onRun;
+  }, [onRun]);
 
   const javaStarterCode = `public class Main {
     public static void main(String[] args) {
@@ -26,6 +32,20 @@ function CodeEditor({
   useEffect(() => {
     return () => window.cancelAnimationFrame(saveFrame.current);
   }, []);
+
+  const handleEditorMount = (editor, monaco) => {
+    editor.addAction({
+      id: "run-code-action",
+      label: "Run Code",
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+        monaco.KeyMod.WinCtrl | monaco.KeyCode.Enter,
+      ],
+      run: () => {
+        onRunRef.current?.();
+      },
+    });
+  };
 
   const getJavaFilename = () => {
     const publicClass = code.match(
@@ -177,6 +197,7 @@ function CodeEditor({
           language={language}
           value={code}
           onChange={(value) => setCode(value || "")}
+          onMount={handleEditorMount}
           theme="vs-dark"
           options={{
             minimap: {

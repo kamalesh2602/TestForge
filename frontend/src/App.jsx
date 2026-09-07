@@ -180,6 +180,25 @@ function App() {
     }
   };
 
+  const handleRun = () => {
+    if (!aiMode) {
+      if (!normalLoading && code.trim()) {
+        handleNormalExecute();
+      }
+    } else {
+      if (codeType && testCases.length > 0) {
+        const selected = testCases.filter((test) => test.selected);
+        if (!loading && selected.length > 0) {
+          handleRunSelected();
+        }
+      } else {
+        if (!loading && code.trim()) {
+          handleGenerate();
+        }
+      }
+    }
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#090d14] text-[#f0f6fc]">
       {/* Top Navbar */}
@@ -234,6 +253,7 @@ function App() {
               language={language}
               setLanguage={updateLanguage}
               onReset={resetEditor}
+              onRun={handleRun}
               setResults={(val) => {
                 setResults(val);
                 setNormalResult(val);
