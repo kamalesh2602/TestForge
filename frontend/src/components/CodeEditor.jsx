@@ -6,6 +6,7 @@ function CodeEditor({
   setCode,
   language,
   setLanguage,
+  starterCode,
   setResults,
   setError,
   clearTestCases,
@@ -20,14 +21,6 @@ function CodeEditor({
   useEffect(() => {
     onRunRef.current = onRun;
   }, [onRun]);
-
-  const javaStarterCode = `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello");
-    }
-}`;
-
-  const javascriptStarterCode = `console.log("Hello");`;
 
   useEffect(() => {
     return () => window.cancelAnimationFrame(saveFrame.current);
@@ -127,15 +120,7 @@ function CodeEditor({
               const newLanguage = e.target.value;
 
               setLanguage(newLanguage);
-
-              // Set default code based on selected language
-              if (newLanguage === "java") {
-                setCode(javaStarterCode);
-              } else if (newLanguage === "javascript") {
-                setCode(javascriptStarterCode);
-              } else {
-                setCode("");
-              }
+              setCode(starterCode?.[newLanguage] ?? "");
 
               // Clear previous results/errors/test cases
               setResults(null);

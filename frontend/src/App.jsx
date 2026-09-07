@@ -7,11 +7,24 @@ import NormalExecutionControls from "./components/NormalExecutionControls";
 import NormalExecutionResults from "./components/NormalExecutionResults";
 import { generateTests, runTests, executeCode } from "./services/api";
 
+const STARTER_CODE = {
+  python: `# Welcome to Python
+print("Hello world")`,
+
+  java: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+}`,
+
+  javascript: `console.log("Hello");`,
+};
+
 const EDITOR_STORAGE_KEY = "testforge.editor-state";
 const EDITOR_STATE_MAX_AGE = 30 * 60 * 1000;
 
 function getSavedEditorState() {
-  const defaultState = { code: "", language: "python" };
+  const defaultState = { code: STARTER_CODE.python, language: "python" };
 
   try {
     const savedState = JSON.parse(localStorage.getItem(EDITOR_STORAGE_KEY));
@@ -100,7 +113,7 @@ function App() {
       // The editor still resets if localStorage is unavailable.
     }
 
-    setCode("");
+    setCode(STARTER_CODE.python);
     setLanguage("python");
   };
 
@@ -252,6 +265,7 @@ function App() {
               setCode={updateCode}
               language={language}
               setLanguage={updateLanguage}
+              starterCode={STARTER_CODE}
               onReset={resetEditor}
               onRun={handleRun}
               setResults={(val) => {
