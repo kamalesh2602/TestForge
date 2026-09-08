@@ -92,7 +92,7 @@ function CodeEditor({
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#0f172a]">
+    <div className="flex h-full min-h-0 flex-col bg-[#0f172a]">
       {/* Editor Top Toolbar */}
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#1e293b] px-4">
         <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
@@ -175,8 +175,8 @@ function CodeEditor({
         </div>
       </div>
 
-      {/* Monaco Editor */}
-      <div className="flex-1">
+      {/* Monaco Editor Wrapper */}
+      <div className="relative flex-1 min-h-0 w-full overflow-hidden">
         <Editor
           height="100%"
           language={language}

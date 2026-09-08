@@ -12,7 +12,10 @@ function NormalExecutionControls({
   const textareaRef = useRef(null);
 
   useLayoutEffect(() => {
-    if (isCollapsed) return;
+    if (isCollapsed) {
+      window.dispatchEvent(new Event("resize"));
+      return;
+    }
 
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -28,6 +31,8 @@ function NormalExecutionControls({
 
     textarea.style.height = `${newHeight}px`;
     textarea.style.overflowY = scrollHeight > MAX_HEIGHT ? "auto" : "hidden";
+
+    window.dispatchEvent(new Event("resize"));
   }, [stdin, isCollapsed]);
 
   return (

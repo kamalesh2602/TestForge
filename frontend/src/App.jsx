@@ -213,7 +213,7 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#090d14] text-[#f0f6fc]">
+    <div className="flex min-h-screen flex-col bg-[#090d14] text-[#f0f6fc] lg:h-screen lg:overflow-hidden">
       {/* Top Navbar */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#1e293b] bg-[#0f172a] px-6">
         <div className="flex items-center gap-3">
@@ -256,10 +256,10 @@ function App() {
       </header>
 
       {/* Main Studio Grid */}
-      <main className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-12">
+      <main className="grid flex-1 grid-cols-1 overflow-y-auto min-h-0 lg:grid-cols-12 lg:overflow-hidden">
         {/* Left Workbench: Editor & Run Inputs */}
-        <section className="flex flex-col border-b border-[#1e293b] overflow-hidden lg:col-span-7 lg:border-b-0 lg:border-r">
-          <div className="flex-1 overflow-hidden">
+        <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
+          <div className="flex-1 flex flex-col min-h-[350px] min-h-0 overflow-hidden">
             <CodeEditor
               code={code}
               setCode={updateCode}
@@ -285,7 +285,7 @@ function App() {
 
           {/* Standard Input & Run Controls pinned to the bottom of the editor */}
           {!aiMode && (
-            <div className="border-t border-[#1e293b] bg-[#0f172a] p-4">
+            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-4 transition-all duration-200">
               <NormalExecutionControls
                 stdin={stdin}
                 setStdin={setStdin}
