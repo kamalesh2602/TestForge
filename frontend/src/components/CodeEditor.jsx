@@ -1,6 +1,5 @@
 import Editor from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
-import Tooltip from "./Tooltip";
 
 function CodeEditor({
   code,
@@ -101,19 +100,17 @@ function CodeEditor({
         </span>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Tooltip content="Reset code to starter template">
-            <button
-              type="button"
-              onClick={onReset}
-              aria-label="Reset editor"
-              className="flex h-7 w-7 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
-            >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M3 12a9 9 0 1 0 3-6.7" />
-                <path d="M3 4v5h5" />
-              </svg>
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={onReset}
+            aria-label="Reset editor"
+            className="flex h-7 w-7 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7" />
+              <path d="M3 4v5h5" />
+            </svg>
+          </button>
 
           {/* Language Selector */}
           <select
@@ -137,48 +134,44 @@ function CodeEditor({
           </select>
 
           {/* Upload File */}
-          <Tooltip content="Upload code file from device">
-            <label className="cursor-pointer rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]">
-              Upload .{language === "python" ? "py" : language === "java" ? "java" : "js"}
+          <label className="cursor-pointer rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]">
+            Upload .{language === "python" ? "py" : language === "java" ? "java" : "js"}
 
-              <input
-                type="file"
-                accept={language === "python" ? ".py" : language === "java" ? ".java" : ".js"}
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
+            <input
+              type="file"
+              accept={language === "python" ? ".py" : language === "java" ? ".java" : ".js"}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
 
-                  if (!file) return;
+                if (!file) return;
 
-                  const reader = new FileReader();
+                const reader = new FileReader();
 
-                  reader.onload = (event) => {
-                    setCode(event.target.result);
-                    setResults(null);
-                    setError("");
-                    clearTestCases();
-                  };
+                reader.onload = (event) => {
+                  setCode(event.target.result);
+                  setResults(null);
+                  setError("");
+                  clearTestCases();
+                };
 
-                  reader.readAsText(file);
+                reader.readAsText(file);
 
-                  // Allow selecting the same file again
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          </Tooltip>
+                // Allow selecting the same file again
+                e.target.value = "";
+              }}
+            />
+          </label>
 
           {/* Save Button */}
-          <Tooltip content="Save code file to device">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </button>
         </div>
       </div>
 
