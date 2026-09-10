@@ -31,6 +31,8 @@ jobs:
 
       - name: Run tests
         working-directory: backend
+        env:
+          PYTHONPATH: .
         run: uv run pytest
 
   frontend:
