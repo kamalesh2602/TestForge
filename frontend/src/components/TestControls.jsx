@@ -1,4 +1,5 @@
 import Tooltip from "./Tooltip";
+import { getRunShortcutLabel } from "../utils/shortcut";
 
 function TestControls({
   count,
@@ -9,6 +10,8 @@ function TestControls({
   loading,
   code,
 }) {
+  const runShortcut = getRunShortcutLabel();
+
   return (
     <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
       <h2 className="mb-3 font-mono text-xs font-bold uppercase tracking-wider text-[#FFA239]">
@@ -43,12 +46,12 @@ function TestControls({
         </div>
       </div>
 
-      <Tooltip content="Run Ctrl + Enter" className="mt-3 w-full">
+      <Tooltip content={runShortcut} className="mt-3 w-full">
         <button
           type="button"
           onClick={onGenerate}
           disabled={loading || !code.trim()}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
         >
           {loading ? "Synthesizing Tests..." : "Generate Test Cases"}
         </button>
