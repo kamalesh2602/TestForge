@@ -285,7 +285,7 @@ function App() {
 
           {/* Standard Input & Run Controls pinned to the bottom of the editor */}
           {!aiMode && (
-            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-4 transition-all duration-200 overflow-x-hidden">
+            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-4 transition-all duration-200 relative z-20">
               <NormalExecutionControls
                 stdin={stdin}
                 setStdin={setStdin}

@@ -38,7 +38,7 @@ function NormalExecutionControls({
   }, [stdin, isCollapsed]);
 
   const renderRunButton = (isHeader = false) => (
-    <Tooltip content={runShortcut} position={isHeader ? "left" : "top-end"} className={isHeader ? "" : "h-[52px] self-start"}>
+    <Tooltip content={runShortcut} position="top-end" className={isHeader ? "" : "h-[52px] self-start"}>
       <button
         type="button"
         onClick={onExecute}
@@ -79,7 +79,7 @@ function NormalExecutionControls({
           {/* Show Run Code button in header ONLY when STDIN is collapsed */}
           {isCollapsed && renderRunButton(true)}
 
-          <Tooltip content={isCollapsed ? "Expand input" : "Collapse input"} position="left">
+          <Tooltip content={isCollapsed ? "Expand input" : "Collapse input"} position="top-end">
             <button
               type="button"
               onClick={() => setIsCollapsed((prev) => !prev)}
@@ -87,21 +87,7 @@ function NormalExecutionControls({
               className="flex h-6 w-6 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] focus:outline-none cursor-pointer"
             >
               {isCollapsed ? (
-                /* Chevron Up icon when collapsed */
-                <svg
-                  className="h-3.5 w-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="18 15 12 9 6 15" />
-                </svg>
-              ) : (
-                /* Chevron Down icon when expanded */
+                /* Chevron Down icon when collapsed (click to expand) */
                 <svg
                   className="h-3.5 w-3.5"
                   viewBox="0 0 24 24"
@@ -113,6 +99,20 @@ function NormalExecutionControls({
                   aria-hidden="true"
                 >
                   <polyline points="6 9 12 15 18 9" />
+                </svg>
+              ) : (
+                /* Chevron Up icon when expanded (click to collapse) */
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="18 15 12 9 6 15" />
                 </svg>
               )}
             </button>
