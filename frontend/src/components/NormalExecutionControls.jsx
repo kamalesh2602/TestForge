@@ -38,7 +38,7 @@ function NormalExecutionControls({
   }, [stdin, isCollapsed]);
 
   const renderRunButton = (isHeader = false) => (
-    <Tooltip content={runShortcut} className={isHeader ? "" : "h-[52px] self-start"}>
+    <Tooltip content={runShortcut} position={isHeader ? "left" : "top-end"} className={isHeader ? "" : "h-[52px] self-start"}>
       <button
         type="button"
         onClick={onExecute}
@@ -79,7 +79,7 @@ function NormalExecutionControls({
           {/* Show Run Code button in header ONLY when STDIN is collapsed */}
           {isCollapsed && renderRunButton(true)}
 
-          <Tooltip content={isCollapsed ? "Expand input" : "Collapse input"}>
+          <Tooltip content={isCollapsed ? "Expand input" : "Collapse input"} position="left">
             <button
               type="button"
               onClick={() => setIsCollapsed((prev) => !prev)}

@@ -95,7 +95,7 @@ function CodeEditor({
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#0f172a]">
       {/* Editor Top Toolbar */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#1e293b] px-4 overflow-x-auto">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#1e293b] px-4 overflow-hidden">
         <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF] shrink-0">
           Source Code
         </span>

@@ -256,9 +256,9 @@ function App() {
       </header>
 
       {/* Main Studio Grid */}
-      <main className="grid flex-1 grid-cols-1 overflow-y-auto min-h-0 lg:grid-cols-12 lg:overflow-hidden">
+      <main className="grid flex-1 grid-cols-1 overflow-y-auto overflow-x-hidden min-h-0 lg:grid-cols-12 lg:overflow-hidden">
         {/* Left Workbench: Editor & Run Inputs */}
-        <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
+        <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto overflow-x-hidden lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
           <div className="flex-1 flex flex-col min-h-[350px] min-h-0 overflow-hidden">
             <CodeEditor
               code={code}
@@ -285,7 +285,7 @@ function App() {
 
           {/* Standard Input & Run Controls pinned to the bottom of the editor */}
           {!aiMode && (
-            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-4 transition-all duration-200">
+            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-4 transition-all duration-200 overflow-x-hidden">
               <NormalExecutionControls
                 stdin={stdin}
                 setStdin={setStdin}
@@ -298,7 +298,7 @@ function App() {
         </section>
 
         {/* Right Workbench: AI Config & Execution Output Console */}
-        <section className="flex flex-col overflow-y-auto bg-[#090d14] p-4 lg:col-span-5">
+        <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-4 lg:col-span-5">
           {aiMode ? (
             <div className="space-y-4">
               <TestControls
