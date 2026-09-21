@@ -10,6 +10,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from models.schemas import (
+    CodeFormatResponse,
     CodeRequest,
     ExecuteRequest,
     ExecuteTestsRequest,
@@ -92,6 +93,36 @@ def analyze(
     )
 
     return analysis
+
+
+# --------------------------------------------------
+# Format Code
+# --------------------------------------------------
+
+@app.post("/format", response_model=CodeFormatResponse)
+def format_code(
+    request: CodeRequest,
+):
+    if request.language == "python":
+        import black
+        try:
+            formatted = black.format_str(request.code, mode=black.Mode())
+            return {"formatted_code": formatted}
+        except black.InvalidInput as e:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": f"Syntax error in Python code: {str(e)}"},
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": f"Failed to format Python code: {str(e)}"},
+            )
+
+    raise HTTPException(
+        status_code=400,
+        detail={"message": f"Formatting for language '{request.language}' is not supported on backend."},
+    )
 
 
 # --------------------------------------------------

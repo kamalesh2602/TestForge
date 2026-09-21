@@ -6,6 +6,10 @@ class CodeRequest(BaseModel):
     language: str = Field(pattern="^(python|java|javascript)$")
 
 
+class CodeFormatResponse(BaseModel):
+    formatted_code: str
+
+
 class TestCase(BaseModel):
     input: str
     expected_output: str | None = None

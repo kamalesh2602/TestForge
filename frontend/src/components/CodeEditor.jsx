@@ -1,5 +1,7 @@
 import Editor from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
+import Tooltip from "./Tooltip";
+import { formatCode } from "../services/formatter";
 
 function CodeEditor({
   code,
@@ -14,9 +16,12 @@ function CodeEditor({
   onRun,
 }) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [formatError, setFormatError] = useState("");
   const isSavingRef = useRef(false);
   const saveFrame = useRef(null);
   const onRunRef = useRef(onRun);
+  const registeredProviders = useRef(false);
 
   useEffect(() => {
     onRunRef.current = onRun;
@@ -25,6 +30,14 @@ function CodeEditor({
   useEffect(() => {
     return () => window.cancelAnimationFrame(saveFrame.current);
   }, []);
+
+  useEffect(() => {
+    if (!formatError) return undefined;
+    const timer = window.setTimeout(() => {
+      setFormatError("");
+    }, 4000);
+    return () => window.clearTimeout(timer);
+  }, [formatError]);
 
   const handleEditorMount = (editor, monaco) => {
     editor.addAction({
@@ -38,6 +51,46 @@ function CodeEditor({
         onRunRef.current?.();
       },
     });
+
+    if (!registeredProviders.current) {
+      registeredProviders.current = true;
+      ["javascript", "java", "python"].forEach((langId) => {
+        monaco.languages.registerDocumentFormattingEditProvider(langId, {
+          async provideDocumentFormattingEdits(model) {
+            try {
+              const text = model.getValue();
+              const formatted = await formatCode(text, langId);
+              return [
+                {
+                  range: model.getFullModelRange(),
+                  text: formatted,
+                },
+              ];
+            } catch {
+              return [];
+            }
+          },
+        });
+      });
+    }
+  };
+
+  const handleFormat = async () => {
+    if (isFormatting || !code || !code.trim()) return;
+
+    setIsFormatting(true);
+    setFormatError("");
+
+    try {
+      const formatted = await formatCode(code, language);
+      if (formatted !== undefined && formatted !== null) {
+        setCode(formatted);
+      }
+    } catch (err) {
+      setFormatError(err.message || "Failed to format code");
+    } finally {
+      setIsFormatting(false);
+    }
   };
 
   const getJavaFilename = () => {
@@ -120,6 +173,7 @@ function CodeEditor({
 
               setLanguage(newLanguage);
               setCode(starterCode?.[newLanguage] ?? "");
+              setFormatError("");
 
               // Clear previous results/errors/test cases
               setResults(null);
@@ -152,6 +206,7 @@ function CodeEditor({
                   setCode(event.target.result);
                   setResults(null);
                   setError("");
+                  setFormatError("");
                   clearTestCases();
                 };
 
@@ -162,6 +217,18 @@ function CodeEditor({
               }}
             />
           </label>
+
+          {/* Format Code Button */}
+          <Tooltip content="Format Code">
+            <button
+              type="button"
+              onClick={handleFormat}
+              disabled={isFormatting}
+              className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {isFormatting ? "Formatting..." : "Format"}
+            </button>
+          </Tooltip>
 
           {/* Save Button */}
           <button
@@ -177,6 +244,20 @@ function CodeEditor({
 
       {/* Monaco Editor Wrapper */}
       <div className="relative flex-1 min-h-0 w-full overflow-hidden">
+        {formatError && (
+          <div className="absolute top-3 right-3 z-30 flex items-center justify-between gap-3 rounded border border-red-500/40 bg-[#090d14]/95 px-3 py-1.5 text-xs text-red-400 shadow-lg backdrop-blur-sm max-w-md font-mono">
+            <span className="truncate">{formatError}</span>
+            <button
+              type="button"
+              onClick={() => setFormatError("")}
+              className="text-red-400 hover:text-red-200 transition shrink-0 cursor-pointer font-sans text-sm leading-none"
+              aria-label="Close message"
+            >
+              &times;
+            </button>
+          </div>
+        )}
+
         <Editor
           height="100%"
           language={language}

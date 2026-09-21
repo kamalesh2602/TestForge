@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env?.VITE_API_URL || "http://localhost:8000";
 
 
 export async function generateTests(
@@ -85,6 +85,28 @@ export async function executeCode(code, stdin = "", language = "python") {
     const error = await response.json();
     throw new Error(
       error.detail?.message || error.message || "Failed to execute code"
+    );
+  }
+
+  return response.json();
+}
+
+export async function formatCodeAPI(code, language = "python") {
+  const response = await fetch(`${API_URL}/format`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code,
+      language,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(
+      error.detail?.message || error.message || "Failed to format code"
     );
   }
 
