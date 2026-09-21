@@ -1,6 +1,7 @@
 import Editor from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
 import { formatCode } from "../services/formatter";
+import { registerCompletionProviders } from "../services/completionProvider";
 
 function CodeEditor({
   code,
@@ -53,6 +54,7 @@ function CodeEditor({
 
     if (!registeredProviders.current) {
       registeredProviders.current = true;
+      registerCompletionProviders(monaco);
       ["javascript", "java", "python"].forEach((langId) => {
         monaco.languages.registerDocumentFormattingEditProvider(langId, {
           async provideDocumentFormattingEdits(model) {
@@ -272,6 +274,15 @@ function CodeEditor({
             },
             scrollBeyondLastLine: false,
             automaticLayout: true,
+            quickSuggestions: {
+              other: true,
+              comments: false,
+              strings: false,
+            },
+            suggestOnTriggerCharacters: true,
+            acceptSuggestionOnEnter: "on",
+            tabCompletion: "on",
+            wordBasedSuggestions: "currentDocument",
           }}
         />
       </div>
