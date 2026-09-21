@@ -1,6 +1,5 @@
 import Editor from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
-import Tooltip from "./Tooltip";
 import { formatCode } from "../services/formatter";
 
 function CodeEditor({
@@ -219,16 +218,14 @@ function CodeEditor({
           </label>
 
           {/* Format Code Button */}
-          <Tooltip content="Format Code">
-            <button
-              type="button"
-              onClick={handleFormat}
-              disabled={isFormatting}
-              className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
-            >
-              {isFormatting ? "Formatting..." : "Format"}
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={handleFormat}
+            disabled={isFormatting}
+            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+          >
+            {isFormatting ? "Formatting..." : "Format"}
+          </button>
 
           {/* Save Button */}
           <button
