@@ -28,7 +28,16 @@ function TestControls({
             min="1"
             max="100"
             value={count}
-            onChange={(e) => setCount(Number(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value;
+
+              if (count === 0 && value.startsWith("0") && value.length > 1) {
+                setCount(Number(value.slice(1)));
+                return;
+              }
+
+              setCount(value === "" ? "" : Number(value));
+            }}
             className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 font-mono text-xs font-bold text-[#FEEE91] outline-none focus:border-[#FFA239]"
           />
         </div>
