@@ -28,15 +28,33 @@ export const documentationCategories = [
       {
         id: "java",
         name: "Java",
-        resources: [],
+        resources: [
+          {
+            title: "W3Schools Java",
+            url: "https://www.w3schools.com/java/",
+            type: "Learning",
+          },
+        ],
       },
       {
         id: "html",
         name: "HTML",
-        resources: [],
+        resources: [
+          {
+            title: "MDN HTML",
+            url: "https://developer.mozilla.org/en-US/docs/Web/HTML",
+            type: "Reference",
+          },
+          {
+            title: "W3Schools HTML",
+            url: "https://www.w3schools.com/Html/",
+            type: "Learning",
+          },
+        ],
       },
     ],
   },
+
   {
     id: "databases",
     category: "Databases",
@@ -75,6 +93,7 @@ export const documentationCategories = [
       },
     ],
   },
+
   {
     id: "frameworks",
     category: "Frameworks & Libraries",
@@ -103,6 +122,40 @@ export const documentationCategories = [
       },
     ],
   },
+
+  {
+    id: "learning",
+    category: "Learning & Practice",
+    technologies: [
+      {
+        id: "coding-practice",
+        name: "Coding Practice",
+        resources: [
+          {
+            title: "LeetCode",
+            url: "https://leetcode.com/",
+            type: "Practice",
+          },
+          {
+            title: "HackerRank",
+            url: "https://www.hackerrank.com/",
+            type: "Practice",
+          },
+          {
+            title: "Take U Forward",
+            url: "https://takeuforward.org/",
+            type: "Learning",
+          },
+          {
+            title: "Hynts",
+            url: "https://hynts.in/",
+            type: "Learning",
+          },
+        ],
+      },
+    ],
+  },
+
   {
     id: "general",
     category: "General Resources",
