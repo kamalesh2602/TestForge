@@ -6,6 +6,7 @@ import TestResults from "./components/TestResults";
 import NormalExecutionControls from "./components/NormalExecutionControls";
 import NormalExecutionResults from "./components/NormalExecutionResults";
 import HtmlPreviewPanel from "./components/HtmlPreviewPanel";
+import DocumentationView from "./components/DocumentationView";
 import { generateTests, runTests, executeCode, warmUpBackend } from "./services/api";
 
 
@@ -76,6 +77,7 @@ function getSavedEditorState() {
 
 function App() {
   const [initialEditorState] = useState(getSavedEditorState);
+  const [currentView, setCurrentView] = useState("editor");
   const [aiMode, setAiMode] = useState(false);
   const [code, setCode] = useState(initialEditorState.code);
   const [language, setLanguage] = useState(initialEditorState.language);
@@ -263,47 +265,80 @@ function App() {
     <div className="flex min-h-screen flex-col bg-[#090d14] text-[#f0f6fc] lg:h-screen lg:overflow-hidden">
       {/* Top Navbar */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#1e293b] bg-[#0f172a] px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-[#FF5656] to-[#FFA239] font-black text-black text-sm shadow">
-            TF
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-[#FF5656] to-[#FFA239] font-black text-black text-sm shadow">
+              TF
+            </div>
+            <div>
+              <h1 className="text-lg font-black tracking-tight text-white">
+                Test<span className="text-[#8CE4FF]">Forge</span>
+              </h1>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-black tracking-tight text-white">
-              Test<span className="text-[#8CE4FF]">Forge</span>
-            </h1>
-          </div>
+
+          {/* Navigation View Switcher */}
+          <nav className="flex items-center gap-1 rounded-lg border border-[#1e293b] bg-[#090d14] p-1 font-mono text-xs">
+            <button
+              type="button"
+              onClick={() => setCurrentView("editor")}
+              className={`rounded px-3 py-1 font-bold transition cursor-pointer ${
+                currentView === "editor"
+                  ? "bg-[#1e293b] text-[#8CE4FF]"
+                  : "text-[#8b949e] hover:text-[#f0f6fc]"
+              }`}
+            >
+              Workbench
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentView("docs")}
+              className={`rounded px-3 py-1 font-bold transition cursor-pointer ${
+                currentView === "docs"
+                  ? "bg-[#1e293b] text-[#8CE4FF]"
+                  : "text-[#8b949e] hover:text-[#f0f6fc]"
+              }`}
+            >
+              Resources
+            </button>
+          </nav>
         </div>
 
-        {/* Mode Selector Pill */}
-        <div className="flex items-center gap-3 rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
-            Mode:
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={aiMode}
-            onClick={() => setAiMode(!aiMode)}
-            className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-            style={{ backgroundColor: aiMode ? "#FFA239" : "#334155" }}
-          >
+        {/* Mode Selector Pill (visible in Workbench view) */}
+        {currentView === "editor" && (
+          <div className="flex items-center gap-3 rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
+              Mode:
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={aiMode}
+              onClick={() => setAiMode(!aiMode)}
+              className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              style={{ backgroundColor: aiMode ? "#FFA239" : "#334155" }}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  aiMode ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
             <span
-              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                aiMode ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </button>
-          <span
-            className="w-16 text-xs font-black uppercase"
-            style={{ color: aiMode ? "#FFA239" : "#8CE4FF" }}
-          >
-            {aiMode ? "AI Test" : "IDE"}
-          </span>
-        </div>
+              className="w-16 text-xs font-black uppercase"
+              style={{ color: aiMode ? "#FFA239" : "#8CE4FF" }}
+            >
+              {aiMode ? "AI Test" : "IDE"}
+            </span>
+          </div>
+        )}
       </header>
 
-      {/* Main Studio Grid */}
-      <main className="grid flex-1 grid-cols-1 overflow-y-auto overflow-x-hidden min-h-0 lg:grid-cols-12 lg:overflow-hidden">
+      {currentView === "docs" ? (
+        <DocumentationView />
+      ) : (
+        /* Main Studio Grid */
+        <main className="grid flex-1 grid-cols-1 overflow-y-auto overflow-x-hidden min-h-0 lg:grid-cols-12 lg:overflow-hidden">
         {/* Left Workbench: Editor & Run Inputs */}
         <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto overflow-x-hidden lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
           <div className="flex-1 flex flex-col min-h-[350px] min-h-0 overflow-hidden">
@@ -400,6 +435,7 @@ function App() {
           )}
         </section>
       </main>
+      )}
     </div>
   );
 }
