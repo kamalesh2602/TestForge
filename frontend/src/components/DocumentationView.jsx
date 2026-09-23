@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { documentationCategories } from "../data/documentation.js";
 
 function getBadgeStyle(type) {
@@ -14,6 +15,48 @@ function getBadgeStyle(type) {
 }
 
 function DocumentationView() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+
+  const categories = useMemo(() => {
+    const cats = new Set(documentationCategories.map((c) => c.category));
+    return ["All Categories", ...Array.from(cats)];
+  }, []);
+
+  const filteredData = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return documentationCategories
+      .filter((cat) => {
+        if (selectedCategory !== "All Categories" && cat.category !== selectedCategory) {
+          return false;
+        }
+        return true;
+      })
+      .map((cat) => {
+        const filteredTechs = cat.technologies
+          .map((tech) => {
+            const filteredResources = tech.resources?.filter((res) => {
+              const matchTitle = res.title?.toLowerCase().includes(query);
+              const matchType = res.type?.toLowerCase().includes(query);
+              const matchTech = tech.name?.toLowerCase().includes(query);
+              return !query || matchTitle || matchType || matchTech;
+            });
+            return { ...tech, resources: filteredResources };
+          })
+          .filter((tech) => tech.resources && tech.resources.length > 0);
+
+        return { ...cat, technologies: filteredTechs };
+      })
+      .filter((cat) => cat.technologies.length > 0);
+  }, [searchQuery, selectedCategory]);
+
+  const hasActiveFilters = searchQuery !== "" || selectedCategory !== "All Categories";
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("All Categories");
+  };
+
   const repoIssueUrl = "https://github.com/kamalesh2602/TestForge/issues/new";
 
   const getIssueUrl = (title, body) => {
@@ -52,9 +95,60 @@ function DocumentationView() {
           </div>
         </header>
 
+        {/* Filters */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg className="h-4 w-4 text-[#8b949e]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="block w-full rounded-lg border border-[#1e293b] bg-[#0f172a] py-2.5 pl-10 pr-4 text-sm text-white placeholder-[#8b949e] focus:border-[#8CE4FF] focus:outline-none focus:ring-1 focus:ring-[#8CE4FF]"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="block w-full rounded-lg border border-[#1e293b] bg-[#0f172a] py-2.5 pl-4 pr-10 text-sm text-white focus:border-[#8CE4FF] focus:outline-none focus:ring-1 focus:ring-[#8CE4FF] sm:w-auto appearance-none"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-sm font-medium text-[#8b949e] hover:text-[#8CE4FF] shrink-0"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Categories Section */}
         <main className="space-y-8">
-          {documentationCategories.map((category) => (
+          {filteredData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-12 text-center shadow-md">
+              <svg className="mb-4 h-12 w-12 text-[#8b949e]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <h3 className="text-lg font-bold text-white">No resources found.</h3>
+              <p className="mt-2 text-sm text-[#8b949e]">Try a different search term or category.</p>
+            </div>
+          ) : (
+            filteredData.map((category) => (
             <section key={category.id} className="space-y-4">
               <div className="flex items-center gap-2 border-b border-[#1e293b] pb-2">
                 <h2 className="font-mono text-sm font-bold uppercase tracking-wider text-[#8CE4FF]">
@@ -128,7 +222,8 @@ function DocumentationView() {
                 ))}
               </div>
             </section>
-          ))}
+            ))
+          )}
         </main>
 
         {/* Feedback Section */}
