@@ -261,6 +261,61 @@ export function registerCompletionProviders(monaco) {
       return { suggestions };
     },
   });
+
+  // ---------------------------------------------------------------------------
+  // HTML COMPLETION PROVIDER
+  // ---------------------------------------------------------------------------
+  monaco.languages.registerCompletionItemProvider("html", {
+    triggerCharacters: ["<", " ", "/", ">", "a", "b", "c", "d", "e", "f", "g", "h", "i", "l", "m", "n", "p", "s", "t", "u", "v", "w"],
+    provideCompletionItems(model, position) {
+      const wordInfo = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: wordInfo.startColumn,
+        endColumn: wordInfo.endColumn,
+      };
+
+      const lineUntilPos = model.getValueInRange({
+        startLineNumber: position.lineNumber,
+        startColumn: 1,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column,
+      });
+
+      const htmlTags = [
+        "h1", "h2", "h3", "h4", "h5", "h6", "div", "p", "section", "ul", "ol", "li",
+        "span", "a", "button", "form", "input", "label", "select", "option", "textarea",
+        "table", "tr", "td", "th", "header", "footer", "nav", "main", "article",
+        "aside", "style", "script", "head", "body", "html", "meta", "title", "img", "link"
+      ];
+
+      const suggestions = [];
+      const startsWithBracket = lineUntilPos.trim().endsWith("<") || /<[a-zA-Z0-9]*$/.test(lineUntilPos);
+
+      htmlTags.forEach((tag) => {
+        const isSelfClosing = ["img", "input", "meta", "link", "br", "hr"].includes(tag);
+
+        let insertText;
+        if (startsWithBracket) {
+          insertText = isSelfClosing ? `${tag} />` : `${tag}>$0</${tag}>`;
+        } else {
+          insertText = isSelfClosing ? `<${tag} />` : `<${tag}>$0</${tag}>`;
+        }
+
+        suggestions.push({
+          label: startsWithBracket ? tag : `<${tag}>`,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          insertText: insertText,
+          detail: isSelfClosing ? `Self-closing <${tag}> tag` : `Paired <${tag}>...</${tag}> tag`,
+          range: range,
+        });
+      });
+
+      return { suggestions };
+    },
+  });
 }
 
 // -----------------------------------------------------------------------------

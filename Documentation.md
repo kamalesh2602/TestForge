@@ -121,13 +121,19 @@ TestForge is structured as a decoupled client-server web application.
 - Allows users to select individual test cases and run selected harnesses batch-wise.
 - Displays a **Harness Scorecard** with pass/fail ratios and detailed output comparison.
 
+### HTML Web Preview & Tag Autocompletion
+- **Sandboxed Live DOM Preview**: Renders HTML documents and internal `<style>` rules safely inside an isolated `<iframe>`.
+- **Maximize Preview**: Expands the HTML preview to occupy the entire workspace overlay with a smooth backdrop and quick restore control.
+- **Open in New Tab**: Exports and opens the exact current HTML content in a standalone browser window via Blob URLs.
+- **Auto-Closing & Paired Tags**: Configured with Monaco's `autoClosingTags` and HTML snippet providers (`<h1>` → `<h1>|</h1>`).
+
 ### Code Formatting
 - Supports instant code formatting.
 - **Python**: Formatted on the backend using `black`.
-- **JavaScript & Java**: Formatted on the frontend using `prettier` and `prettier-plugin-java`.
+- **HTML, JavaScript & Java**: Formatted on the frontend using `prettier` (`html`, `babel`, and `prettier-plugin-java`).
 
 ### IntelliSense
-- In-editor completion items for Python, Java, and JavaScript keywords, standard library methods, and common code patterns.
+- In-editor completion items for HTML, Python, Java, and JavaScript keywords, HTML paired tags, standard library methods, and common code patterns.
 
 ### Persistent Editor State
 - Auto-saves draft code and language selections to `localStorage` (`testforge.editor-state`).

@@ -279,6 +279,10 @@ function CodeEditor({
             },
             scrollBeyondLastLine: false,
             automaticLayout: true,
+            autoClosingTags: true,
+            autoClosingBrackets: "always",
+            autoClosingQuotes: "always",
+            formatOnType: true,
             quickSuggestions: {
               other: true,
               comments: false,
