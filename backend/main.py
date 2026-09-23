@@ -1,7 +1,9 @@
+import logging
 import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
@@ -24,6 +26,8 @@ from services.test_generator import generate_tests
 
 
 load_dotenv()
+
+logger = logging.getLogger("testforge")
 
 
 app = FastAPI(title="TestForge")
@@ -204,12 +208,12 @@ async def generate(
         )
 
     except Exception as e:
-
+        logger.error(f"AI service error during test generation: {e}", exc_info=True)
         raise HTTPException(
             status_code=503,
             detail={
                 "error": "AI service unavailable",
-                "message": str(e),
+                "message": "AI testing is currently unavailable. Please try again later.",
             },
         )
 

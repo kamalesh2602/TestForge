@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import httpx
@@ -6,6 +7,9 @@ from dotenv import load_dotenv
 from google import genai
 
 load_dotenv()
+
+logger = logging.getLogger("testforge")
+
 
 
 SYSTEM_PROMPT = """
@@ -280,6 +284,7 @@ async def generate_tests(
             )
 
         except Exception as e:
+            logger.error(f"Gemini error: {e}", exc_info=True)
             errors.append(
                 f"Gemini: {str(e)}"
             )
@@ -300,6 +305,8 @@ async def generate_tests(
             errors.append(
                 f"OpenRouter: {str(e)}"
             )
+            logger.error(f"OpenRouter error: {e}", exc_info=True)
+
 
     else:
 
