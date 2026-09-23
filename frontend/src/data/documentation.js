@@ -142,14 +142,68 @@ export const documentationCategories = [
             type: "Practice",
           },
           {
+            title: "IndiaBIX",
+            url: "https://www.indiabix.com/",
+            type: "Practice",
+          },
+          {
             title: "Take U Forward",
             url: "https://takeuforward.org/",
+            type: "Learning",
+          },
+          {
+            title: "NeetCode",
+            url: "https://neetcode.io/",
             type: "Learning",
           },
           {
             title: "Hynts",
             url: "https://hynts.in/",
             type: "Learning",
+          },
+        ],
+      },
+      {
+        id: "roadmaps",
+        name: "Developer Roadmaps",
+        resources: [
+          {
+            title: "Roadmap.sh",
+            url: "https://roadmap.sh/",
+            type: "Learning",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tools",
+    category: "Developer Tools",
+    technologies: [
+      {
+        id: "git",
+        name: "Git & GitHub",
+        resources: [
+          {
+            title: "Git Documentation",
+            url: "https://git-scm.com/doc",
+            type: "Official",
+          },
+          {
+            title: "GitHub Docs",
+            url: "https://docs.github.com/",
+            type: "Official",
+          },
+        ],
+      },
+      {
+        id: "docker",
+        name: "Docker",
+        resources: [
+          {
+            title: "Docker Documentation",
+            url: "https://docs.docker.com/",
+            type: "Official",
           },
         ],
       },
@@ -173,6 +227,11 @@ export const documentationCategories = [
             title: "GeeksforGeeks",
             url: "https://www.geeksforgeeks.org/",
             type: "Learning",
+          },
+          {
+            title: "MDN Web Docs",
+            url: "https://developer.mozilla.org/",
+            type: "Reference",
           },
         ],
       },
