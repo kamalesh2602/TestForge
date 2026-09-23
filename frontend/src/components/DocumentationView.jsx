@@ -14,6 +14,27 @@ function getBadgeStyle(type) {
 }
 
 function DocumentationView() {
+  const repoIssueUrl = "https://github.com/kamalesh2602/TestForge/issues/new";
+
+  const getIssueUrl = (title, body) => {
+    return `${repoIssueUrl}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const reportIssueUrl = getIssueUrl(
+    "[Resources] Issue with a resource",
+    "Resource: \nWhat is incorrect or outdated? \nAdditional details: "
+  );
+
+  const suggestResourceUrl = getIssueUrl(
+    "[Resources] Suggest a resource",
+    "Resource name: \nURL: \nCategory: \nWhy should this resource be added? \nAdditional details: "
+  );
+
+  const reportBrokenLinkUrl = getIssueUrl(
+    "[Resources] Broken link",
+    "Resource: \nURL: \nWhat happens when opening the link? \nAdditional details: "
+  );
+
   return (
     <div className="flex-1 overflow-y-auto bg-[#090d14] px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -115,6 +136,58 @@ function DocumentationView() {
             </section>
           ))}
         </main>
+
+        {/* Feedback Section */}
+        <footer className="mt-12 rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 shadow-md sm:p-8">
+          <div className="flex flex-col items-center text-center">
+            <h2 className="text-lg font-bold text-white">Help Improve These Resources</h2>
+            <p className="mt-2 text-sm text-[#8b949e]">
+              Found something incorrect, outdated, or broken? Help keep these resources useful for everyone.
+            </p>
+            
+            <div className="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+              <a
+                href={reportIssueUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center gap-2 rounded-lg border border-[#1e293b] bg-[#090d14] p-4 text-[#8CE4FF] transition-all hover:border-[#8CE4FF]/50 hover:bg-[#1e293b]"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span className="font-sans text-sm font-bold">Report an Issue</span>
+              </a>
+
+              <a
+                href={suggestResourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center gap-2 rounded-lg border border-[#1e293b] bg-[#090d14] p-4 text-[#8CE4FF] transition-all hover:border-[#8CE4FF]/50 hover:bg-[#1e293b]"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14"/>
+                  <path d="M5 12h14"/>
+                </svg>
+                <span className="font-sans text-sm font-bold">Suggest a Resource</span>
+              </a>
+
+              <a
+                href={reportBrokenLinkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center gap-2 rounded-lg border border-[#1e293b] bg-[#090d14] p-4 text-[#8CE4FF] transition-all hover:border-[#8CE4FF]/50 hover:bg-[#1e293b]"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                <span className="font-sans text-sm font-bold">Report Broken Link</span>
+              </a>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
