@@ -8,6 +8,7 @@ function NormalExecutionControls({
   onExecute,
   loading,
   code,
+  language,
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const textareaRef = useRef(null);
@@ -66,6 +67,17 @@ function NormalExecutionControls({
       </button>
     </Tooltip>
   );
+
+  if (language === "html") {
+    return (
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
+          HTML Web Preview
+        </label>
+        {renderRunButton(true)}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">

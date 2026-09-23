@@ -55,7 +55,7 @@ function CodeEditor({
     if (!registeredProviders.current) {
       registeredProviders.current = true;
       registerCompletionProviders(monaco);
-      ["javascript", "java", "python"].forEach((langId) => {
+      ["javascript", "java", "python", "html"].forEach((langId) => {
         monaco.languages.registerDocumentFormattingEditProvider(langId, {
           async provideDocumentFormattingEdits(model) {
             try {
@@ -120,14 +120,18 @@ function CodeEditor({
             ? "main.py"
             : language === "javascript"
               ? "main.js"
-              : getJavaFilename();
+              : language === "html"
+                ? "testforge.html"
+                : getJavaFilename();
         const blob = new Blob([code], {
           type:
             language === "python"
               ? "text/x-python"
               : language === "javascript"
                 ? "text/javascript"
-                : "text/x-java-source",
+                : language === "html"
+                  ? "text/html"
+                  : "text/x-java-source",
         });
         const downloadUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -186,15 +190,16 @@ function CodeEditor({
             <option value="python">Python</option>
             <option value="java">Java</option>
             <option value="javascript">JavaScript</option>
+            <option value="html">HTML</option>
           </select>
 
           {/* Upload File */}
           <label className="cursor-pointer rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]">
-            Upload .{language === "python" ? "py" : language === "java" ? "java" : "js"}
+            Upload .{language === "python" ? "py" : language === "java" ? "java" : language === "javascript" ? "js" : "html"}
 
             <input
               type="file"
-              accept={language === "python" ? ".py" : language === "java" ? ".java" : ".js"}
+              accept={language === "python" ? ".py" : language === "java" ? ".java" : language === "javascript" ? ".js" : ".html,.htm"}
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];

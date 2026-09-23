@@ -152,6 +152,7 @@ TestForge is structured as a decoupled client-server web application.
 | **Python** | Python 3.11+ | Native `ast` module parsing | AST node inspection & wrapper script |
 | **Java** | OpenJDK 17+ | `javac` compilation check & regex method extraction | Generated `Main` class wrapper |
 | **JavaScript** | Node.js | Syntax check with `node --check` & regex function detection | Node spread operator (`...args`) harness |
+| **HTML** | Browser DOM | Native Monaco HTML syntax & autocompletion | Sandboxed `<iframe>` rendering with internal CSS support |
 
 ---
 

@@ -5,6 +5,7 @@ import TestCaseList from "./components/TestCaseList";
 import TestResults from "./components/TestResults";
 import NormalExecutionControls from "./components/NormalExecutionControls";
 import NormalExecutionResults from "./components/NormalExecutionResults";
+import HtmlPreviewPanel from "./components/HtmlPreviewPanel";
 import { generateTests, runTests, executeCode, warmUpBackend } from "./services/api";
 
 
@@ -19,6 +20,28 @@ print("Hello world")`,
 }`,
 
   javascript: `console.log("Hello");`,
+
+  html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TestForge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hello from TestForge!</h1>
+</body>
+</html>`,
 };
 
 const EDITOR_STORAGE_KEY = "testforge.editor-state";
@@ -32,7 +55,7 @@ function getSavedEditorState() {
     const age = Date.now() - savedState?.timestamp;
     const isValidState =
       typeof savedState?.code === "string" &&
-      ["python", "java", "javascript"].includes(savedState.language) &&
+      ["python", "java", "javascript", "html"].includes(savedState.language) &&
       Number.isFinite(savedState.timestamp) &&
       age >= 0 &&
       age < EDITOR_STATE_MAX_AGE;
@@ -64,6 +87,9 @@ function App() {
   const [normalResult, setNormalResult] = useState(null);
   const [normalLoading, setNormalLoading] = useState(false);
   const [normalError, setNormalError] = useState("");
+  const [htmlPreviewCode, setHtmlPreviewCode] = useState(() =>
+    initialEditorState.language === "html" ? initialEditorState.code : STARTER_CODE.html
+  );
 
   // AI Testing Mode state
   const [count, setCount] = useState(5);
@@ -107,6 +133,9 @@ function App() {
   const updateLanguage = (value) => {
     hasEditorChanged.current = true;
     setLanguage(value);
+    if (value === "html") {
+      setHtmlPreviewCode(STARTER_CODE.html);
+    }
   };
 
   const resetEditor = () => {
@@ -119,8 +148,11 @@ function App() {
       // The editor still resets if localStorage is unavailable.
     }
 
-    setCode(STARTER_CODE.python);
-    setLanguage("python");
+    const defaultCode = STARTER_CODE[language] || STARTER_CODE.python;
+    setCode(defaultCode);
+    if (language === "html") {
+      setHtmlPreviewCode(defaultCode);
+    }
   };
 
   const handleNormalExecute = async () => {
@@ -199,7 +231,16 @@ function App() {
     }
   };
 
+  const handleHtmlPreview = () => {
+    setHtmlPreviewCode(code);
+  };
+
   const handleRun = () => {
+    if (language === "html") {
+      handleHtmlPreview();
+      return;
+    }
+
     if (!aiMode) {
       if (!normalLoading && code.trim()) {
         handleNormalExecute();
@@ -295,9 +336,10 @@ function App() {
               <NormalExecutionControls
                 stdin={stdin}
                 setStdin={setStdin}
-                onExecute={handleNormalExecute}
+                onExecute={handleRun}
                 loading={normalLoading}
                 code={code}
+                language={language}
               />
             </div>
           )}
@@ -306,26 +348,46 @@ function App() {
         {/* Right Workbench: AI Config & Execution Output Console */}
         <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-4 lg:col-span-5">
           {aiMode ? (
-            <div className="space-y-4">
-              <TestControls
-                count={count}
-                setCount={setCount}
-                description={description}
-                setDescription={setDescription}
-                onGenerate={handleGenerate}
-                loading={loading}
-                code={code}
-              />
+            language === "html" ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 text-center shadow-md">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFA239]/10 text-[#FFA239]">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="mb-1 font-mono text-sm font-bold uppercase text-[#FFA239]">
+                  AI Testing Not Available for HTML
+                </h3>
+                <p className="max-w-sm text-xs text-[#8b949e]">
+                  AI test generation synthesizes unit test cases for executable functions and programs. HTML is rendered directly via the browser preview.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <TestControls
+                  count={count}
+                  setCount={setCount}
+                  description={description}
+                  setDescription={setDescription}
+                  onGenerate={handleGenerate}
+                  loading={loading}
+                  code={code}
+                />
 
-              <TestCaseList
-                testCases={testCases}
-                setTestCases={setTestCases}
-                codeType={codeType}
-                onRunSelected={handleRunSelected}
-                loading={loading}
-              />
+                <TestCaseList
+                  testCases={testCases}
+                  setTestCases={setTestCases}
+                  codeType={codeType}
+                  onRunSelected={handleRunSelected}
+                  loading={loading}
+                />
 
-              <TestResults results={results} loading={loading} error={error} />
+                <TestResults results={results} loading={loading} error={error} />
+              </div>
+            )
+          ) : language === "html" ? (
+            <div className="h-full min-h-[350px]">
+              <HtmlPreviewPanel htmlCode={htmlPreviewCode} onRun={handleRun} />
             </div>
           ) : (
             <div className="h-full">

@@ -1,6 +1,7 @@
 import * as prettier from "prettier/standalone";
 import parserBabel from "prettier/plugins/babel";
 import parserEstree from "prettier/plugins/estree";
+import parserHtml from "prettier/plugins/html";
 import prettierPluginJava from "prettier-plugin-java";
 import { formatCodeAPI } from "./api.js";
 
@@ -39,6 +40,21 @@ export async function formatCode(code, language) {
       const msg = err.message || "Failed to format Java code";
       const cleanMsg = msg.split("\n")[0];
       throw new Error(`Java formatting error: ${cleanMsg}`);
+    }
+  }
+
+  if (language === "html") {
+    try {
+      const formatted = await prettier.format(code, {
+        parser: "html",
+        plugins: [parserHtml],
+        tabWidth: 2,
+      });
+      return formatted;
+    } catch (err) {
+      const msg = err.message || "Failed to format HTML code";
+      const cleanMsg = msg.split("\n")[0];
+      throw new Error(`HTML formatting error: ${cleanMsg}`);
     }
   }
 
