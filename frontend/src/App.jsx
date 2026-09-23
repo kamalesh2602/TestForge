@@ -5,7 +5,8 @@ import TestCaseList from "./components/TestCaseList";
 import TestResults from "./components/TestResults";
 import NormalExecutionControls from "./components/NormalExecutionControls";
 import NormalExecutionResults from "./components/NormalExecutionResults";
-import { generateTests, runTests, executeCode } from "./services/api";
+import { generateTests, runTests, executeCode, warmUpBackend } from "./services/api";
+
 
 const STARTER_CODE = {
   python: `# Welcome to Python
@@ -74,6 +75,11 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    warmUpBackend();
+  }, []);
+
+  useEffect(() => {
+
     if (!hasEditorChanged.current) {
       return undefined;
     }

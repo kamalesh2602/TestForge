@@ -1,5 +1,19 @@
 const API_URL = import.meta.env?.VITE_API_URL || "http://localhost:8000";
 
+let isWarmedUp = false;
+
+export async function warmUpBackend() {
+  if (isWarmedUp) return;
+  isWarmedUp = true;
+
+  try {
+    await fetch(`${API_URL}/health`, { method: "GET" });
+  } catch {
+    // Ignore warm-up failure silently to prevent UI disruption.
+  }
+}
+
+
 
 export async function generateTests(
   code,
