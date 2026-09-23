@@ -10,31 +10,31 @@ on:
 
 jobs:
   backend:
-    name: Backend Tests
-    runs-on: ubuntu-latest
+  name: Backend Tests
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
 
-      - name: Install dependencies
-        working-directory: backend
-        run: uv sync --frozen
+    - name: Install dependencies
+      working-directory: backend
+      run: uv sync --frozen
 
-      - name: Run tests
-        working-directory: backend
-        env:
-          PYTHONPATH: .
-        run: uv run pytest
-
+    - name: Run tests
+      working-directory: backend
+      env:
+        PYTHONPATH: ${{ github.workspace }}/backend
+      run: uv run pytest
+      
   frontend:
     name: Frontend Build
     runs-on: ubuntu-latest
