@@ -152,17 +152,19 @@ function CodeEditor({
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#0f172a]">
       {/* Editor Top Toolbar */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#1e293b] px-4 overflow-hidden">
-        <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF] shrink-0">
-          Source Code
-        </span>
+      <div className="flex flex-col sm:flex-row sm:h-11 shrink-0 sm:items-center justify-between border-b border-[#1e293b] px-3 py-2 sm:px-4 sm:py-0 gap-2 sm:gap-0">
+        <div className="flex items-center justify-between sm:justify-start gap-2">
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF] shrink-0">
+            Source Code
+          </span>
+        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={onReset}
             aria-label="Reset editor"
-            className="flex h-7 w-7 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
+            className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
           >
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path d="M3 12a9 9 0 1 0 3-6.7" />
@@ -185,7 +187,7 @@ function CodeEditor({
               setError("");
               clearTestCases();
             }}
-            className="rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1 font-mono text-xs font-bold text-[#FEEE91] outline-none transition focus:border-[#8CE4FF] cursor-pointer"
+            className="rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 sm:py-1 font-mono text-xs font-bold text-[#FEEE91] outline-none transition focus:border-[#8CE4FF] cursor-pointer"
           >
             <option value="python">Python</option>
             <option value="java">Java</option>
@@ -194,7 +196,7 @@ function CodeEditor({
           </select>
 
           {/* Upload File */}
-          <label className="cursor-pointer rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]">
+          <label className="cursor-pointer rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1.5 sm:py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF]">
             Upload .{language === "python" ? "py" : language === "java" ? "java" : language === "javascript" ? "js" : "html"}
 
             <input
@@ -229,7 +231,7 @@ function CodeEditor({
             type="button"
             onClick={handleFormat}
             disabled={isFormatting}
-            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1.5 sm:py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
           >
             {isFormatting ? "Formatting..." : "Format"}
           </button>
@@ -239,7 +241,7 @@ function CodeEditor({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            className="rounded border border-[#1e293b] bg-[#1e293b] px-2.5 py-1.5 sm:py-1 text-xs font-semibold text-[#f0f6fc] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
           >
             {isSaving ? "Saving..." : "Save"}
           </button>
@@ -247,14 +249,14 @@ function CodeEditor({
       </div>
 
       {/* Monaco Editor Wrapper */}
-      <div className="relative flex-1 min-h-0 w-full overflow-hidden">
+      <div className="relative flex-1 min-h-[350px] sm:min-h-0 w-full overflow-hidden">
         {formatError && (
-          <div className="absolute top-3 right-3 z-30 flex items-center justify-between gap-3 rounded border border-red-500/40 bg-[#090d14]/95 px-3 py-1.5 text-xs text-red-400 shadow-lg backdrop-blur-sm max-w-md font-mono">
+          <div className="absolute top-3 right-3 left-3 sm:left-auto z-30 flex items-center justify-between gap-3 rounded border border-red-500/40 bg-[#090d14]/95 px-3 py-1.5 text-xs text-red-400 shadow-lg backdrop-blur-sm max-w-md font-mono">
             <span className="truncate">{formatError}</span>
             <button
               type="button"
               onClick={() => setFormatError("")}
-              className="text-red-400 hover:text-red-200 transition shrink-0 cursor-pointer font-sans text-sm leading-none"
+              className="text-red-400 hover:text-red-200 transition shrink-0 cursor-pointer font-sans text-sm leading-none p-1"
               aria-label="Close message"
             >
               &times;

@@ -20,8 +20,8 @@ function TestResults({ results, loading, error }) {
   if (!results) return null;
 
   return (
-    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
-      <div className="mb-3 flex items-center justify-between border-b border-[#1e293b] pb-3">
+    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 shadow-md">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#1e293b] pb-3">
         <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
           Harness Scorecard
         </h2>

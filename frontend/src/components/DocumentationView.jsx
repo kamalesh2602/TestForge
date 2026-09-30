@@ -57,12 +57,6 @@ function DocumentationView() {
     setSelectedCategory("All Categories");
   };
 
-  const repoIssueUrl = "https://github.com/kamalesh2602/TestForge/issues/new";
-
-  const getIssueUrl = (title, body) => {
-    return `${repoIssueUrl}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
-  };
-
   const reportIssueUrl =
     "https://github.com/kamalesh2602/TestForge/issues/new?template=report-a-resource-issue.md";
 
@@ -73,19 +67,19 @@ function DocumentationView() {
     "https://github.com/kamalesh2602/TestForge/issues/new?template=report-a-broken-link.md";
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#090d14] px-4 py-6 sm:px-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div className="flex-1 overflow-y-auto bg-[#090d14] px-3 py-4 sm:px-8 sm:py-6">
+      <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
         {/* Header Banner */}
-        <header className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 shadow-md">
+        <header className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-6 shadow-md">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#8CE4FF]/10 text-[#8CE4FF]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#8CE4FF]/10 text-[#8CE4FF]">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl">
+              <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl break-words">
                 Developer Resources & Documentation
               </h1>
               <p className="mt-0.5 text-xs text-[#8b949e] sm:text-sm">
@@ -96,8 +90,8 @@ function DocumentationView() {
         </header>
 
         {/* Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="relative w-full flex-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <svg className="h-4 w-4 text-[#8b949e]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
@@ -112,11 +106,11 @@ function DocumentationView() {
               className="block w-full rounded-lg border border-[#1e293b] bg-[#0f172a] py-2.5 pl-10 pr-4 text-sm text-white placeholder-[#8b949e] focus:border-[#8CE4FF] focus:outline-none focus:ring-1 focus:ring-[#8CE4FF]"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-3">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full rounded-lg border border-[#1e293b] bg-[#0f172a] py-2.5 pl-4 pr-10 text-sm text-white focus:border-[#8CE4FF] focus:outline-none focus:ring-1 focus:ring-[#8CE4FF] sm:w-auto appearance-none"
+              className="block w-full sm:w-auto rounded-lg border border-[#1e293b] bg-[#0f172a] py-2.5 pl-4 pr-10 text-sm text-white focus:border-[#8CE4FF] focus:outline-none focus:ring-1 focus:ring-[#8CE4FF] appearance-none"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -127,7 +121,7 @@ function DocumentationView() {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="text-sm font-medium text-[#8b949e] hover:text-[#8CE4FF] shrink-0"
+                className="text-sm font-medium text-[#8b949e] hover:text-[#8CE4FF] shrink-0 cursor-pointer py-1 px-2"
               >
                 Clear filters
               </button>
@@ -138,7 +132,7 @@ function DocumentationView() {
         {/* Categories Section */}
         <main className="space-y-8">
           {filteredData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-12 text-center shadow-md">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-8 sm:p-12 text-center shadow-md">
               <svg className="mb-4 h-12 w-12 text-[#8b949e]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
@@ -172,7 +166,7 @@ function DocumentationView() {
                           >
                             <div className="space-y-2">
                               <div className="flex items-start justify-between gap-2">
-                                <h4 className="font-sans text-sm font-bold text-white line-clamp-2">
+                                <h4 className="font-sans text-sm font-bold text-white line-clamp-2 break-words">
                                   {resource.title}
                                 </h4>
                                 {resource.type && (
@@ -193,7 +187,7 @@ function DocumentationView() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={`Open ${resource.title} in a new tab`}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#1e293b] px-3 py-2 font-mono text-xs font-bold text-[#8CE4FF] transition hover:bg-[#8CE4FF] hover:text-black focus:outline-none focus:ring-2 focus:ring-[#8CE4FF]"
+                                className="inline-flex w-full min-h-[40px] items-center justify-center gap-2 rounded-lg bg-[#1e293b] px-3 py-2 font-mono text-xs font-bold text-[#8CE4FF] transition hover:bg-[#8CE4FF] hover:text-black focus:outline-none focus:ring-2 focus:ring-[#8CE4FF]"
                               >
                                 <span>Open Resource</span>
                                 <svg
@@ -227,14 +221,14 @@ function DocumentationView() {
         </main>
 
         {/* Feedback Section */}
-        <footer className="mt-12 rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 shadow-md sm:p-8">
+        <footer className="mt-12 rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 sm:p-8 shadow-md">
           <div className="flex flex-col items-center text-center">
             <h2 className="text-lg font-bold text-white">Help Improve These Resources</h2>
             <p className="mt-2 text-sm text-[#8b949e]">
               Found something incorrect, outdated, or broken? Help keep these resources useful for everyone.
             </p>
 
-            <div className="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3">
               <a
                 href={reportIssueUrl}
                 target="_blank"

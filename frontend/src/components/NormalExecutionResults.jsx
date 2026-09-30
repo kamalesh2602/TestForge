@@ -1,7 +1,7 @@
 function NormalExecutionResults({ result, loading, error }) {
   return (
-    <div className="flex h-full flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
-      <div className="mb-3 flex items-center justify-between border-b border-[#1e293b] pb-3">
+    <div className="flex h-full flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 shadow-md">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#1e293b] pb-3">
         <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
           Execution Console
         </h2>
@@ -40,7 +40,7 @@ function NormalExecutionResults({ result, loading, error }) {
         {error && (
           <div className="rounded-lg border border-[#FF5656]/50 bg-[#FF5656]/10 p-3 text-[#FF5656]">
             <p className="font-mono text-xs font-bold uppercase">Execution Error</p>
-            <pre className="mt-1 whitespace-pre-wrap font-mono text-xs">{error}</pre>
+            <pre className="mt-1 whitespace-pre-wrap font-mono text-xs break-words overflow-x-auto">{error}</pre>
           </div>
         )}
 
@@ -60,7 +60,7 @@ function NormalExecutionResults({ result, loading, error }) {
                 <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#8b949e]">
                   Standard Output (stdout)
                 </div>
-                <pre className="whitespace-pre-wrap break-words">{result.output}</pre>
+                <pre className="whitespace-pre-wrap break-words overflow-x-auto">{result.output}</pre>
               </div>
             ) : (
               <div className="rounded-lg border border-[#1e293b]/50 bg-[#090d14] p-3 font-mono text-xs italic text-[#475569]">
@@ -73,7 +73,7 @@ function NormalExecutionResults({ result, loading, error }) {
                 <div className="mb-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#FF5656]">
                   Standard Error (stderr)
                 </div>
-                <pre className="whitespace-pre-wrap break-words">{result.error}</pre>
+                <pre className="whitespace-pre-wrap break-words overflow-x-auto">{result.error}</pre>
               </div>
             )}
           </div>

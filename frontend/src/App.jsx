@@ -264,25 +264,57 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col bg-[#090d14] text-[#f0f6fc] lg:h-screen lg:overflow-hidden">
       {/* Top Navbar */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#1e293b] bg-[#0f172a] px-6">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-[#FF5656] to-[#FFA239] font-black text-black text-sm shadow">
-              TF
+      <header className="flex flex-col sm:flex-row sm:h-14 shrink-0 justify-between border-b border-[#1e293b] bg-[#0f172a] px-4 py-2.5 sm:px-6 sm:py-0 gap-2 sm:gap-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 w-full sm:w-auto">
+          {/* Logo & Mobile Mode Switcher Row */}
+          <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-[#FF5656] to-[#FFA239] font-black text-black text-sm shadow">
+                TF
+              </div>
+              <div>
+                <h1 className="text-lg font-black tracking-tight text-white">
+                  Test<span className="text-[#8CE4FF]">Forge</span>
+                </h1>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-black tracking-tight text-white">
-                Test<span className="text-[#8CE4FF]">Forge</span>
-              </h1>
-            </div>
+
+            {/* Mobile Mode Selector Pill (visible in Workbench view on mobile only) */}
+            {currentView === "editor" && (
+              <div className="flex sm:hidden items-center gap-2 rounded-lg border border-[#1e293b] bg-[#090d14] px-2.5 py-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#8b949e]">
+                  Mode:
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={aiMode}
+                  onClick={() => setAiMode(!aiMode)}
+                  className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                  style={{ backgroundColor: aiMode ? "#FFA239" : "#334155" }}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      aiMode ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+                <span
+                  className="w-14 text-center text-[11px] font-black uppercase"
+                  style={{ color: aiMode ? "#FFA239" : "#8CE4FF" }}
+                >
+                  {aiMode ? "AI Test" : "IDE"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Navigation View Switcher */}
-          <nav className="flex items-center gap-1 rounded-lg border border-[#1e293b] bg-[#090d14] p-1 font-mono text-xs">
+          <nav className="flex items-center gap-1 rounded-lg border border-[#1e293b] bg-[#090d14] p-1 font-mono text-xs w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setCurrentView("editor")}
-              className={`rounded px-3 py-1 font-bold transition cursor-pointer ${
+              className={`flex-1 sm:flex-none text-center rounded px-3 py-1.5 sm:py-1 font-bold transition cursor-pointer ${
                 currentView === "editor"
                   ? "bg-[#1e293b] text-[#8CE4FF]"
                   : "text-[#8b949e] hover:text-[#f0f6fc]"
@@ -293,7 +325,7 @@ function App() {
             <button
               type="button"
               onClick={() => setCurrentView("docs")}
-              className={`rounded px-3 py-1 font-bold transition cursor-pointer ${
+              className={`flex-1 sm:flex-none text-center rounded px-3 py-1.5 sm:py-1 font-bold transition cursor-pointer ${
                 currentView === "docs"
                   ? "bg-[#1e293b] text-[#8CE4FF]"
                   : "text-[#8b949e] hover:text-[#f0f6fc]"
@@ -304,9 +336,9 @@ function App() {
           </nav>
         </div>
 
-        {/* Mode Selector Pill (visible in Workbench view) */}
+        {/* Desktop Mode Selector Pill (visible in Workbench view on sm: and up) */}
         {currentView === "editor" && (
-          <div className="flex items-center gap-3 rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1">
+          <div className="hidden sm:flex items-center gap-3 rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1">
             <span className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
               Mode:
             </span>
@@ -341,7 +373,7 @@ function App() {
         <main className="grid flex-1 grid-cols-1 overflow-y-auto overflow-x-hidden min-h-0 lg:grid-cols-12 lg:overflow-hidden">
         {/* Left Workbench: Editor & Run Inputs */}
         <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto overflow-x-hidden lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
-          <div className="flex-1 flex flex-col min-h-[350px] min-h-0 overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-[350px] sm:min-h-[400px] lg:min-h-0 overflow-hidden">
             <CodeEditor
               code={code}
               setCode={updateCode}
@@ -367,7 +399,7 @@ function App() {
 
           {/* Standard Input & Run Controls pinned to the bottom of the editor */}
           {!aiMode && (
-            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-4 transition-all duration-200 relative z-20">
+            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 transition-all duration-200 relative z-20">
               <NormalExecutionControls
                 stdin={stdin}
                 setStdin={setStdin}
@@ -381,10 +413,10 @@ function App() {
         </section>
 
         {/* Right Workbench: AI Config & Execution Output Console */}
-        <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-4 lg:col-span-5">
+        <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-3 sm:p-4 lg:col-span-5">
           {aiMode ? (
             language === "html" ? (
-              <div className="flex h-full flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 text-center shadow-md">
+              <div className="flex h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0 flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 text-center shadow-md">
                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFA239]/10 text-[#FFA239]">
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -421,11 +453,11 @@ function App() {
               </div>
             )
           ) : language === "html" ? (
-            <div className="h-full min-h-[350px]">
+            <div className="h-full min-h-[350px] sm:min-h-[400px] lg:min-h-0">
               <HtmlPreviewPanel htmlCode={htmlPreviewCode} onRun={handleRun} />
             </div>
           ) : (
-            <div className="h-full">
+            <div className="h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0">
               <NormalExecutionResults
                 result={normalResult}
                 loading={normalLoading}

@@ -34,8 +34,8 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
   };
 
   const containerClasses = isMaximized
-    ? "fixed inset-4 z-50 flex flex-col rounded-xl border border-[#8CE4FF]/40 bg-[#0f172a] p-4 shadow-2xl backdrop-blur-md"
-    : "flex h-full flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md";
+    ? "fixed inset-2 sm:inset-4 z-50 flex flex-col rounded-xl border border-[#8CE4FF]/40 bg-[#0f172a] p-3 sm:p-4 shadow-2xl backdrop-blur-md"
+    : "flex h-full flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 shadow-md";
 
   return (
     <>
@@ -48,7 +48,7 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
       )}
 
       <div className={containerClasses}>
-        <div className="mb-3 flex items-center justify-between border-b border-[#1e293b] pb-3 shrink-0">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#1e293b] pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
               HTML Web Preview
@@ -63,13 +63,13 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Open in New Tab Button */}
             <Tooltip content="Open preview in new tab" position="top-end">
               <button
                 type="button"
                 onClick={handleOpenInNewTab}
-                className="flex items-center gap-1.5 rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1 font-mono text-xs text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
+                className="flex items-center gap-1.5 rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 sm:py-1 font-mono text-xs text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -85,7 +85,7 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
               <button
                 type="button"
                 onClick={handleRefresh}
-                className="flex items-center gap-1.5 rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1 font-mono text-xs text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
+                className="flex items-center gap-1.5 rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 sm:py-1 font-mono text-xs text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M3 12a9 9 0 1 0 3-6.7" />
@@ -100,7 +100,7 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
               <button
                 type="button"
                 onClick={() => setIsMaximized(!isMaximized)}
-                className="flex items-center gap-1.5 rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1 font-mono text-xs text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
+                className="flex items-center gap-1.5 rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 sm:py-1 font-mono text-xs text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] cursor-pointer"
               >
                 {isMaximized ? (
                   <>

@@ -30,8 +30,8 @@ function TestCaseList({
     );
 
   return (
-    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
-      <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
+    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 shadow-md">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1e293b] pb-3">
         <div>
           <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#FEEE91]">
             Generated Suite
@@ -40,12 +40,12 @@ function TestCaseList({
             {selectedCount} of {testCases.length} selected
           </span>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => setTestCases((curr) => curr.map((t) => ({ ...t, selected: true })))}
             disabled={!testCases.length}
-            className="rounded border border-[#1e293b] bg-[#090d14] px-2 py-1 text-[10px] font-bold uppercase text-[#f0f6fc] transition hover:border-[#8CE4FF] cursor-pointer"
+            className="rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 sm:px-2 sm:py-1 text-[10px] font-bold uppercase text-[#f0f6fc] transition hover:border-[#8CE4FF] cursor-pointer disabled:opacity-50"
           >
             Select All
           </button>
@@ -53,7 +53,7 @@ function TestCaseList({
             type="button"
             onClick={() => setTestCases((curr) => curr.map((t) => ({ ...t, selected: false })))}
             disabled={!selectedCount}
-            className="rounded border border-[#1e293b] bg-[#090d14] px-2 py-1 text-[10px] font-bold uppercase text-[#f0f6fc] transition hover:border-[#8CE4FF] cursor-pointer"
+            className="rounded border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 sm:px-2 sm:py-1 text-[10px] font-bold uppercase text-[#f0f6fc] transition hover:border-[#8CE4FF] cursor-pointer disabled:opacity-50"
           >
             Deselect
           </button>
@@ -71,19 +71,19 @@ function TestCaseList({
             }}
           >
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 font-mono text-xs font-bold text-[#f0f6fc] cursor-pointer">
+              <label className="flex items-center gap-2 font-mono text-xs font-bold text-[#f0f6fc] cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={test.selected}
                   onChange={(e) => updateTest(test.id, { selected: e.target.checked })}
-                  className="h-3.5 w-3.5 rounded accent-[#FFA239] cursor-pointer"
+                  className="h-4 w-4 sm:h-3.5 sm:w-3.5 rounded accent-[#FFA239] cursor-pointer"
                 />
                 Case #{index + 1}
               </label>
               <button
                 type="button"
                 onClick={() => setTestCases((curr) => curr.filter((t) => t.id !== test.id))}
-                className="text-[11px] font-bold text-[#FF5656] hover:opacity-80 cursor-pointer"
+                className="p-1 text-[11px] font-bold text-[#FF5656] hover:opacity-80 cursor-pointer"
               >
                 Delete
               </button>
@@ -96,7 +96,7 @@ function TestCaseList({
                 </label>
                 <textarea
                   rows={2}
-                  className="mt-0.5 w-full rounded border border-[#1e293b] bg-[#0f172a] px-2 py-1 font-mono text-xs text-[#FEEE91] outline-none focus:border-[#8CE4FF]"
+                  className="mt-0.5 w-full rounded border border-[#1e293b] bg-[#0f172a] px-2 py-1.5 sm:py-1 font-mono text-xs text-[#FEEE91] outline-none focus:border-[#8CE4FF]"
                   value={codeType === "function" ? test.arguments : test.input}
                   onChange={(e) =>
                     updateTest(test.id, codeType === "function" ? { arguments: e.target.value } : { input: e.target.value })
@@ -109,7 +109,7 @@ function TestCaseList({
                   Expected Output
                 </label>
                 <input
-                  className="mt-0.5 w-full rounded border border-[#1e293b] bg-[#0f172a] px-2 py-1 font-mono text-xs text-[#8CE4FF] outline-none focus:border-[#8CE4FF]"
+                  className="mt-0.5 w-full rounded border border-[#1e293b] bg-[#0f172a] px-2 py-1.5 sm:py-1 font-mono text-xs text-[#8CE4FF] outline-none focus:border-[#8CE4FF]"
                   value={test.expectedOutput}
                   onChange={(e) => updateTest(test.id, { expectedOutput: e.target.value })}
                 />
@@ -119,21 +119,21 @@ function TestCaseList({
         ))}
       </div>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-col sm:flex-row gap-2">
         <button
           type="button"
           onClick={() => setTestCases((curr) => [...curr, createTestCase()])}
-          className="flex-1 rounded-lg border border-[#1e293b] bg-[#090d14] py-2 text-xs font-bold text-[#f0f6fc] transition hover:border-[#8CE4FF] cursor-pointer"
+          className="w-full sm:flex-1 min-h-[42px] sm:min-h-0 rounded-lg border border-[#1e293b] bg-[#090d14] py-2 text-xs font-bold text-[#f0f6fc] transition hover:border-[#8CE4FF] cursor-pointer"
         >
           + Add Test
         </button>
 
-        <Tooltip content={runShortcut} className="flex-1">
+        <Tooltip content={runShortcut} className="w-full sm:flex-1">
           <button
             type="button"
             onClick={onRunSelected}
             disabled={loading || !selectedCount}
-            className="w-full rounded-lg bg-[#8CE4FF] py-2 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-sm shadow-black/20"
+            className="w-full min-h-[42px] sm:min-h-0 rounded-lg bg-[#8CE4FF] py-2 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-sm shadow-black/20"
           >
             {loading ? "Running..." : `Run Selected (${selectedCount})`}
           </button>

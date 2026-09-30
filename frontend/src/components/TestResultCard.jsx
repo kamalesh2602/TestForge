@@ -23,16 +23,16 @@ function TestResultCard({ result, index }) {
         </span>
       </div>
 
-      <div className="mt-2 space-y-1 rounded bg-[#0f172a] p-2 font-mono text-[11px]">
-        <div>
+      <div className="mt-2 space-y-1 rounded bg-[#0f172a] p-2 font-mono text-[11px] overflow-hidden break-words">
+        <div className="break-all">
           <span className="text-[#8b949e]">Input: </span>
           <span className="text-[#FEEE91]">{JSON.stringify(result.input)}</span>
         </div>
-        <div>
+        <div className="break-all">
           <span className="text-[#8b949e]">Expected: </span>
           <span className="text-[#8CE4FF]">{result.expected_output}</span>
         </div>
-        <div>
+        <div className="break-all">
           <span className="text-[#8b949e]">Actual: </span>
           <span style={{ color: passed ? "#8CE4FF" : "#FF5656" }}>
             {result.actual_output}

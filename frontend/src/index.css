@@ -16,6 +16,11 @@ html, body {
   overflow-x: hidden;
 }
 
+#root {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
 /* Custom Sleek Dark Scrollbars for WebKit Browsers (Chrome, Edge, Safari, Brave) */
 ::-webkit-scrollbar {
   width: 6px;

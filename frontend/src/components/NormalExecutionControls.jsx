@@ -39,12 +39,16 @@ function NormalExecutionControls({
   }, [stdin, isCollapsed]);
 
   const renderRunButton = (isHeader = false) => (
-    <Tooltip content={runShortcut} position="top-end" className={isHeader ? "" : "h-[52px] self-start"}>
+    <Tooltip
+      content={runShortcut}
+      position="top-end"
+      className={isHeader ? "" : "w-full sm:w-auto h-11 sm:h-[52px] self-stretch sm:self-start"}
+    >
       <button
         type="button"
         onClick={onExecute}
         disabled={loading || !code.trim()}
-        className={`flex min-w-[130px] items-center justify-center gap-2 rounded-lg bg-[#FFA239] px-4 font-bold text-black transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-sm shadow-black/20 ${
+        className={`flex w-full sm:w-auto min-w-[130px] items-center justify-center gap-2 rounded-lg bg-[#FFA239] px-4 font-bold text-black transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-sm shadow-black/20 ${
           isHeader ? "h-8 text-xs" : "h-full text-xs"
         }`}
       >
@@ -70,7 +74,7 @@ function NormalExecutionControls({
 
   if (language === "html") {
     return (
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
         <label className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
           HTML Web Preview
         </label>
@@ -82,12 +86,12 @@ function NormalExecutionControls({
   return (
     <div className="flex flex-col">
       {/* Header Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
         <label className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
           Standard Input (stdin) - <span className="text-[#FEEE91] font-normal">Optional</span>
         </label>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Show Run Code button in header ONLY when STDIN is collapsed */}
           {isCollapsed && renderRunButton(true)}
 
@@ -96,7 +100,7 @@ function NormalExecutionControls({
               type="button"
               onClick={() => setIsCollapsed((prev) => !prev)}
               aria-label={isCollapsed ? "Expand input" : "Collapse input"}
-              className="flex h-6 w-6 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] focus:outline-none cursor-pointer"
+              className="flex h-8 w-8 sm:h-6 sm:w-6 items-center justify-center rounded border border-[#1e293b] bg-[#1e293b] text-[#8b949e] transition hover:border-[#8CE4FF] hover:text-[#8CE4FF] focus:outline-none cursor-pointer"
             >
               {isCollapsed ? (
                 /* Chevron Down icon when collapsed (click to expand) */
@@ -141,14 +145,14 @@ function NormalExecutionControls({
         }`}
       >
         <div className={isCollapsed ? "overflow-hidden" : "overflow-visible pt-1"}>
-          <div className="flex items-start gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3">
             <textarea
               ref={textareaRef}
               value={stdin}
               onChange={(e) => setStdin(e.target.value)}
               placeholder="Program input..."
               rows={2}
-              className="flex-1 resize-none rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-2 font-mono text-xs text-[#f0f6fc] placeholder-[#475569] outline-none transition focus:border-[#8CE4FF]"
+              className="w-full flex-1 resize-none rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-2 font-mono text-xs text-[#f0f6fc] placeholder-[#475569] outline-none transition focus:border-[#8CE4FF]"
               style={{ minHeight: "52px", maxHeight: "160px" }}
             />
 

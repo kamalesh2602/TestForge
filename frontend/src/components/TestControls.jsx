@@ -13,13 +13,13 @@ function TestControls({
   const runShortcut = getRunShortcutLabel();
 
   return (
-    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-4 shadow-md">
+    <div className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 shadow-md">
       <h2 className="mb-3 font-mono text-xs font-bold uppercase tracking-wider text-[#FFA239]">
         Test Synthesis Setup
       </h2>
 
-      <div className="flex gap-3">
-        <div className="w-24">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="w-full sm:w-24">
           <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-wider text-[#8b949e]">
             Count
           </label>
@@ -38,7 +38,7 @@ function TestControls({
 
               setCount(value === "" ? "" : Number(value));
             }}
-            className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-2.5 py-1.5 font-mono text-xs font-bold text-[#FEEE91] outline-none focus:border-[#FFA239]"
+            className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-2.5 py-2 sm:py-1.5 font-mono text-xs font-bold text-[#FEEE91] outline-none focus:border-[#FFA239]"
           />
         </div>
 
@@ -50,7 +50,7 @@ function TestControls({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. Test boundary conditions and negative inputs"
-            className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-1.5 text-xs text-[#f0f6fc] placeholder-[#475569] outline-none focus:border-[#FFA239]"
+            className="w-full rounded-lg border border-[#1e293b] bg-[#090d14] px-3 py-2 sm:py-1.5 text-xs text-[#f0f6fc] placeholder-[#475569] outline-none focus:border-[#FFA239]"
           />
         </div>
       </div>
@@ -60,7 +60,7 @@ function TestControls({
           type="button"
           onClick={onGenerate}
           disabled={loading || !code.trim()}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          className="flex w-full min-h-[44px] sm:min-h-0 items-center justify-center gap-2 rounded-lg bg-[#FFA239] py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:opacity-90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
         >
           {loading ? "Synthesizing Tests..." : "Generate Test Cases"}
         </button>
