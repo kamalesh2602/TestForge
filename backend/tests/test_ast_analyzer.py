@@ -77,3 +77,38 @@ def test_analyze_code_unsupported_language():
     result = analyze_code("code", "rust")
     assert result["valid"] is False
     assert result["error"] == "Unsupported language"
+
+
+def test_analyze_javascript_with_optional_chaining():
+    mock_executor = MagicMock()
+    mock_executor.validate_javascript.return_value = {"valid": True, "stderr": ""}
+
+    code = """
+function getUserInfo(user) {
+    const name = user?.profile?.name;
+    const firstScore = user?.scores?.[0];
+    const greeting = user?.greet?.();
+    const fallback = user?.missing?.value;
+    return { name, firstScore, greeting, fallback };
+}
+"""
+    result = analyze_javascript(code, mock_executor)
+    assert result["valid"] is True
+    assert result["code_type"] == "function"
+    assert len(result["functions"]) == 1
+    assert result["functions"][0]["name"] == "getUserInfo"
+    assert result["functions"][0]["parameters"] == ["user"]
+
+
+def test_analyze_javascript_program_with_optional_chaining():
+    mock_executor = MagicMock()
+    mock_executor.validate_javascript.return_value = {"valid": True, "stderr": ""}
+
+    code = """
+const user = { profile: { name: "Kamalesh" } };
+console.log(user?.profile?.name);
+"""
+    result = analyze_javascript(code, mock_executor)
+    assert result["valid"] is True
+    assert result["code_type"] == "program"
+

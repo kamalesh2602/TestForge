@@ -5,6 +5,7 @@ import docker
 
 from services.executor import Executor
 from services.java_utils import find_java_main_class, find_java_primary_class
+from services.judge0_executor import JAVASCRIPT_INPUT_HELPER
 
 
 class DockerExecutor(Executor):
@@ -240,6 +241,127 @@ class DockerExecutor(Executor):
                 container,
                 timeout,
             )
+
+        finally:
+            if container:
+                container.remove(force=True)
+
+    def execute_javascript(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        container = None
+
+        try:
+            container = self._create_container(
+                image="node:20-slim",
+                command=[
+                    "sh",
+                    "-c",
+                    "node /app/main.js < /app/input.txt",
+                ],
+            )
+
+            tar_stream = self._create_archive(
+                {
+                    "main.js": (JAVASCRIPT_INPUT_HELPER + code).encode(),
+                    "input.txt": stdin.encode(),
+                }
+            )
+
+            container.put_archive(
+                "/app",
+                tar_stream,
+            )
+
+            container.start()
+
+            return self._wait_for_result(
+                container,
+                timeout,
+            )
+
+        finally:
+            if container:
+                container.remove(force=True)
+
+    def execute_javascript_function(
+        self,
+        code: str,
+        timeout: int = 5,
+    ) -> dict:
+        return self.execute_javascript(
+            code=code,
+            timeout=timeout,
+        )
+
+    def validate_javascript(
+        self,
+        code: str,
+    ) -> dict:
+
+        container = None
+
+        try:
+            container = self._create_container(
+                image="node:20-slim",
+                command=[
+                    "node",
+                    "--check",
+                    "/app/main.js",
+                ],
+            )
+
+            tar_stream = self._create_archive(
+                {
+                    "main.js": code.encode(),
+                }
+            )
+
+            container.put_archive(
+                "/app",
+                tar_stream,
+            )
+
+            container.start()
+
+            result = container.wait(
+                timeout=10,
+            )
+
+            stdout = container.logs(
+                stdout=True,
+                stderr=False,
+            ).decode(
+                "utf-8",
+                errors="replace",
+            )
+
+            stderr = container.logs(
+                stdout=False,
+                stderr=True,
+            ).decode(
+                "utf-8",
+                errors="replace",
+            )
+
+            return {
+                "valid": result["StatusCode"] == 0,
+                "stdout": stdout,
+                "stderr": stderr,
+                "exit_code": result["StatusCode"],
+            }
+
+        except Exception as e:
+            return {
+                "valid": False,
+                "stdout": "",
+                "stderr": str(e),
+                "exit_code": -1,
+            }
 
         finally:
             if container:

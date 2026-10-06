@@ -29,9 +29,15 @@ function input() {
 class Judge0Executor(Executor):
 
     def __init__(self):
-        self.api_url = os.getenv(
+        api_url = os.getenv(
             "JUDGE0_API_URL",
             "https://ce.judge0.com",
+        )
+        if not api_url or api_url == "your_judge0_url":
+            api_url = "https://ce.judge0.com"
+        self.api_url = api_url.rstrip("/")
+        self.javascript_language_id = int(
+            os.getenv("JUDGE0_JAVASCRIPT_LANGUAGE_ID", "102")
         )
 
     def _submit(
@@ -196,7 +202,7 @@ class Judge0Executor(Executor):
 
         result = self._submit(
             source_code=JAVASCRIPT_INPUT_HELPER + code,
-            language_id=63,
+            language_id=self.javascript_language_id,
             stdin=stdin,
             timeout=timeout,
         )
@@ -259,7 +265,7 @@ class Judge0Executor(Executor):
 
         result = self._submit(
             source_code=f"new Function({json.dumps(code)});",
-            language_id=63,
+            language_id=self.javascript_language_id,
             timeout=10,
         )
         status_id = result["status"]["id"]
