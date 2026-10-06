@@ -3,7 +3,7 @@ import Tooltip from "./Tooltip";
 import DeveloperConsole from "./DeveloperConsole";
 import { buildPreviewHtml } from "../utils/htmlConsoleInterceptor";
 
-function HtmlPreviewPanel({ htmlCode, runTrigger, onRun }) {
+function HtmlPreviewPanel({ htmlCode, runTrigger, onRun, isWebMode = false }) {
   const [previewId, setPreviewId] = useState(
     () => `p_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
   );
@@ -127,7 +127,7 @@ function HtmlPreviewPanel({ htmlCode, runTrigger, onRun }) {
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#1e293b] pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
-              HTML Web Preview
+              {isWebMode ? "Web Browser Preview" : "HTML Web Preview"}
             </h2>
             <span className="rounded bg-[#8CE4FF]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#8CE4FF] uppercase">
               Live DOM
@@ -214,7 +214,7 @@ function HtmlPreviewPanel({ htmlCode, runTrigger, onRun }) {
               ref={iframeRef}
               key={previewId}
               srcDoc={injectedHtml}
-              title="HTML Preview"
+              title={isWebMode ? "Web Preview" : "HTML Preview"}
               sandbox="allow-scripts allow-forms"
               className="h-full w-full border-0"
             />

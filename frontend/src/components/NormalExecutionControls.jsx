@@ -72,11 +72,11 @@ function NormalExecutionControls({
     </Tooltip>
   );
 
-  if (language === "html") {
+  if (language === "html" || language === "web") {
     return (
       <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
         <label className="text-xs font-bold uppercase tracking-wider text-[#8b949e]">
-          HTML Web Preview
+          {language === "web" ? "Web Browser Preview" : "HTML Web Preview"}
         </label>
         {renderRunButton(true)}
       </div>
