@@ -92,6 +92,7 @@ function App() {
   const [htmlPreviewCode, setHtmlPreviewCode] = useState(() =>
     initialEditorState.language === "html" ? initialEditorState.code : STARTER_CODE.html
   );
+  const [htmlRunTrigger, setHtmlRunTrigger] = useState(0);
 
   // AI Testing Mode state
   const [count, setCount] = useState(5);
@@ -235,6 +236,7 @@ function App() {
 
   const handleHtmlPreview = () => {
     setHtmlPreviewCode(code);
+    setHtmlRunTrigger((prev) => prev + 1);
   };
 
   const handleRun = () => {
@@ -454,7 +456,11 @@ function App() {
             )
           ) : language === "html" ? (
             <div className="h-full min-h-[350px] sm:min-h-[400px] lg:min-h-0">
-              <HtmlPreviewPanel htmlCode={htmlPreviewCode} onRun={handleRun} />
+              <HtmlPreviewPanel
+                htmlCode={htmlPreviewCode}
+                runTrigger={htmlRunTrigger}
+                onRun={handleRun}
+              />
             </div>
           ) : (
             <div className="h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0">

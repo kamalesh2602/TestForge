@@ -1,13 +1,84 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Tooltip from "./Tooltip";
+import DeveloperConsole from "./DeveloperConsole";
+import { buildPreviewHtml } from "../utils/htmlConsoleInterceptor";
 
-function HtmlPreviewPanel({ htmlCode, onRun }) {
-  const [key, setKey] = useState(0);
+function HtmlPreviewPanel({ htmlCode, runTrigger, onRun }) {
+  const [previewId, setPreviewId] = useState(
+    () => `p_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+  );
+  const [logs, setLogs] = useState([]);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
+
+  const iframeRef = useRef(null);
+  const prevRunTriggerRef = useRef(runTrigger);
+  const prevHtmlCodeRef = useRef(htmlCode);
+
+  // Sync with external run triggers or code updates
+  useEffect(() => {
+    const runTriggerChanged =
+      runTrigger !== undefined && runTrigger !== prevRunTriggerRef.current;
+    const htmlCodeChanged = htmlCode !== prevHtmlCodeRef.current;
+
+    prevRunTriggerRef.current = runTrigger;
+    prevHtmlCodeRef.current = htmlCode;
+
+    if (runTriggerChanged || htmlCodeChanged) {
+      setPreviewId(`p_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+      setLogs([]);
+    }
+  }, [runTrigger, htmlCode]);
+
+  // Safe postMessage listener from sandboxed iframe
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (!event || !event.data || typeof event.data !== "object") return;
+      const data = event.data;
+
+      // Validate message signature and current preview execution ID
+      if (data.source !== "testforge-html-preview") return;
+      if (data.previewId !== previewId) return;
+
+      // Validate that message originates from our iframe content window
+      if (
+        iframeRef.current?.contentWindow &&
+        event.source !== iframeRef.current.contentWindow
+      ) {
+        return;
+      }
+
+      if (!Array.isArray(data.args)) return;
+
+      const level = ["log", "info", "warn", "error"].includes(data.level)
+        ? data.level
+        : "log";
+
+      const entry = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        level,
+        args: data.args,
+        timestamp: typeof data.timestamp === "number" ? data.timestamp : Date.now(),
+      };
+
+      setLogs((prev) => {
+        const next = [...prev, entry];
+        return next.length > 250 ? next.slice(next.length - 250) : next;
+      });
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [previewId]);
 
   const handleRefresh = () => {
-    setKey((prev) => prev + 1);
+    setPreviewId(`p_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+    setLogs([]);
     if (onRun) onRun();
+  };
+
+  const handleClearConsole = () => {
+    setLogs([]);
   };
 
   const handleOpenInNewTab = () => {
@@ -33,6 +104,10 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
     }
   };
 
+  const injectedHtml = useMemo(() => {
+    return buildPreviewHtml(htmlCode, previewId);
+  }, [htmlCode, previewId]);
+
   const containerClasses = isMaximized
     ? "fixed inset-2 sm:inset-4 z-50 flex flex-col rounded-xl border border-[#8CE4FF]/40 bg-[#0f172a] p-3 sm:p-4 shadow-2xl backdrop-blur-md"
     : "flex h-full flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 shadow-md";
@@ -48,6 +123,7 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
       )}
 
       <div className={containerClasses}>
+        {/* Panel Header */}
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#1e293b] pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#8CE4FF]">
@@ -122,14 +198,45 @@ function HtmlPreviewPanel({ htmlCode, onRun }) {
           </div>
         </div>
 
-        <div className="flex-1 min-h-[300px] min-h-0 w-full rounded-lg border border-[#1e293b] bg-white overflow-hidden">
-          <iframe
-            key={key}
-            srcDoc={htmlCode || ""}
-            title="HTML Preview"
-            sandbox="allow-scripts allow-forms"
-            className="h-full w-full border-0"
-          />
+        {/* Main Body: HTML Preview + Developer Console */}
+        <div className="flex-1 flex flex-col min-h-0 gap-3">
+          {/* HTML Preview Iframe */}
+          <div
+            className={`w-full rounded-lg border border-[#1e293b] bg-white overflow-hidden shadow-inner transition-all ${
+              isConsoleCollapsed
+                ? "flex-1 min-h-[300px]"
+                : isMaximized
+                  ? "flex-1 min-h-[220px]"
+                  : "flex-1 min-h-[160px] sm:min-h-[200px]"
+            }`}
+          >
+            <iframe
+              ref={iframeRef}
+              key={previewId}
+              srcDoc={injectedHtml}
+              title="HTML Preview"
+              sandbox="allow-scripts allow-forms"
+              className="h-full w-full border-0"
+            />
+          </div>
+
+          {/* Developer Console */}
+          <div
+            className={`transition-all shrink-0 ${
+              isConsoleCollapsed
+                ? "shrink-0"
+                : isMaximized
+                  ? "h-64 sm:h-72 flex flex-col"
+                  : "h-48 sm:h-56 flex flex-col"
+            }`}
+          >
+            <DeveloperConsole
+              logs={logs}
+              onClear={handleClearConsole}
+              isCollapsed={isConsoleCollapsed}
+              onToggleCollapse={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
+            />
+          </div>
         </div>
       </div>
     </>
