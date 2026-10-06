@@ -298,6 +298,48 @@ class DockerExecutor(Executor):
             timeout=timeout,
         )
 
+    def execute_c(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        container = None
+
+        try:
+            container = self._create_container(
+                image="gcc:latest",
+                command=[
+                    "sh",
+                    "-c",
+                    "gcc -O2 /app/main.c -o /app/main && /app/main < /app/input.txt",
+                ],
+            )
+
+            tar_stream = self._create_archive(
+                {
+                    "main.c": code.encode(),
+                    "input.txt": stdin.encode(),
+                }
+            )
+
+            container.put_archive(
+                "/app",
+                tar_stream,
+            )
+
+            container.start()
+
+            return self._wait_for_result(
+                container,
+                timeout,
+            )
+
+        finally:
+            if container:
+                container.remove(force=True)
+
     def validate_javascript(
         self,
         code: str,

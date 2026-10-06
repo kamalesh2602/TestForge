@@ -39,6 +39,9 @@ class Judge0Executor(Executor):
         self.javascript_language_id = int(
             os.getenv("JUDGE0_JAVASCRIPT_LANGUAGE_ID", "102")
         )
+        self.c_language_id = int(
+            os.getenv("JUDGE0_C_LANGUAGE_ID", "103")
+        )
 
     def _submit(
         self,
@@ -215,6 +218,22 @@ class Judge0Executor(Executor):
         timeout: int = 5,
     ) -> dict:
         return self.execute_javascript(code=code, timeout=timeout)
+
+    def execute_c(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=code,
+            language_id=self.c_language_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
 
     def validate_java(
         self,

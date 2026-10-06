@@ -20,6 +20,12 @@ def test_execute_request_defaults():
     assert req.stdin == ""
 
 
+def test_execute_request_supports_c():
+    req = ExecuteRequest(code='#include <stdio.h>\nint main() { return 0; }', language="c", stdin="123")
+    assert req.language == "c"
+    assert req.stdin == "123"
+
+
 def test_test_generation_request_valid():
     req = TestGenerationRequest(code="def foo(): pass", language="javascript", count=3)
     assert req.count == 3

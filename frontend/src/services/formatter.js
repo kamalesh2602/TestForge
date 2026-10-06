@@ -86,5 +86,9 @@ export async function formatCode(code, language) {
     }
   }
 
+  if (language === "c") {
+    throw new Error("C code formatting is not currently supported in the editor.");
+  }
+
   throw new Error(`Unsupported formatting language: ${language}`);
 }
