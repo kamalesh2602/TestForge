@@ -2,12 +2,28 @@ import * as prettier from "prettier/standalone";
 import parserBabel from "prettier/plugins/babel";
 import parserEstree from "prettier/plugins/estree";
 import parserHtml from "prettier/plugins/html";
+import parserPostcss from "prettier/plugins/postcss";
 import prettierPluginJava from "prettier-plugin-java";
 import { formatCodeAPI } from "./api.js";
 
 export async function formatCode(code, language) {
   if (!code || !code.trim()) {
     return code;
+  }
+
+  if (language === "css") {
+    try {
+      const formatted = await prettier.format(code, {
+        parser: "css",
+        plugins: [parserPostcss],
+        tabWidth: 2,
+      });
+      return formatted;
+    } catch (err) {
+      const msg = err.message || "Failed to format CSS code";
+      const cleanMsg = msg.split("\n")[0];
+      throw new Error(`CSS formatting error: ${cleanMsg}`, { cause: err });
+    }
   }
 
   if (language === "javascript") {

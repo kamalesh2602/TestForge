@@ -8,7 +8,7 @@ import NormalExecutionResults from "./components/NormalExecutionResults";
 import HtmlPreviewPanel from "./components/HtmlPreviewPanel";
 import DocumentationView from "./components/DocumentationView";
 import { generateTests, runTests, executeCode, warmUpBackend } from "./services/api";
-
+import { buildWebProjectHtml } from "./utils/webProjectBuilder";
 
 const STARTER_CODE = {
   python: `# Welcome to Python
@@ -43,26 +43,165 @@ print("Hello world")`,
   <h1>Hello from TestForge!</h1>
 </body>
 </html>`,
+
+  web: {
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TestForge Web</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 id="title">Hello TestForge</h1>
+    <p>Edit HTML, CSS, and JavaScript to see live updates.</p>
+    <button id="btn">Click Me</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>`,
+
+    css: `body {
+  font-family: Arial, sans-serif;
+  background-color: #0f172a;
+  color: #f0f6fc;
+  margin: 0;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  background: #1e293b;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 500px;
+}
+
+#title {
+  color: #8ce4ff;
+  margin-top: 0;
+}
+
+p {
+  color: #94a3b8;
+}
+
+button {
+  background-color: #ffa239;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}`,
+
+    javascript: `console.log("Web mode loaded");
+
+const button = document.getElementById("btn");
+if (button) {
+  button.addEventListener("click", () => {
+    console.log("Button clicked!");
+    const title = document.getElementById("title");
+    if (title) {
+      title.textContent = "Button Clicked in TestForge!";
+    }
+  });
+}`,
+  },
 };
 
 const EDITOR_STORAGE_KEY = "testforge.editor-state";
 const EDITOR_STATE_MAX_AGE = 30 * 60 * 1000;
 
 function getSavedEditorState() {
-  const defaultState = { code: STARTER_CODE.python, language: "python" };
+  const defaultWebCode = { ...STARTER_CODE.web };
+  const defaultState = {
+    code: STARTER_CODE.python,
+    language: "python",
+    webCode: defaultWebCode,
+  };
 
   try {
     const savedState = JSON.parse(localStorage.getItem(EDITOR_STORAGE_KEY));
     const age = Date.now() - savedState?.timestamp;
-    const isValidState =
-      typeof savedState?.code === "string" &&
-      ["python", "java", "javascript", "html"].includes(savedState.language) &&
-      Number.isFinite(savedState.timestamp) &&
+    const isTimestampValid =
+      Number.isFinite(savedState?.timestamp) &&
       age >= 0 &&
       age < EDITOR_STATE_MAX_AGE;
 
-    if (isValidState) {
-      return { code: savedState.code, language: savedState.language };
+    if (!isTimestampValid) {
+      if (savedState) {
+        localStorage.removeItem(EDITOR_STORAGE_KEY);
+      }
+      return defaultState;
+    }
+
+    if (savedState.language === "web") {
+      const html =
+        typeof savedState.webCode?.html === "string"
+          ? savedState.webCode.html
+          : typeof savedState.htmlCode === "string"
+            ? savedState.htmlCode
+            : STARTER_CODE.web.html;
+
+      const css =
+        typeof savedState.webCode?.css === "string"
+          ? savedState.webCode.css
+          : typeof savedState.cssCode === "string"
+            ? savedState.cssCode
+            : STARTER_CODE.web.css;
+
+      const js =
+        typeof savedState.webCode?.javascript === "string"
+          ? savedState.webCode.javascript
+          : typeof savedState.webCode?.js === "string"
+            ? savedState.webCode.js
+            : typeof savedState.jsCode === "string"
+              ? savedState.jsCode
+              : STARTER_CODE.web.javascript;
+
+      return {
+        language: "web",
+        code: html,
+        webCode: { html, css, javascript: js },
+      };
+    }
+
+    if (
+      typeof savedState?.code === "string" &&
+      ["python", "java", "javascript", "html"].includes(savedState.language)
+    ) {
+      const savedWebCode =
+        savedState.webCode &&
+        typeof savedState.webCode.html === "string" &&
+        typeof savedState.webCode.css === "string" &&
+        typeof savedState.webCode.javascript === "string"
+          ? savedState.webCode
+          : defaultWebCode;
+
+      return {
+        code: savedState.code,
+        language: savedState.language,
+        webCode: savedWebCode,
+      };
     }
 
     if (savedState) {
@@ -81,6 +220,9 @@ function App() {
   const [aiMode, setAiMode] = useState(false);
   const [code, setCode] = useState(initialEditorState.code);
   const [language, setLanguage] = useState(initialEditorState.language);
+  const [webCode, setWebCode] = useState(
+    initialEditorState.webCode || { ...STARTER_CODE.web }
+  );
   const hasEditorChanged = useRef(false);
   const saveTimer = useRef(null);
 
@@ -89,9 +231,17 @@ function App() {
   const [normalResult, setNormalResult] = useState(null);
   const [normalLoading, setNormalLoading] = useState(false);
   const [normalError, setNormalError] = useState("");
-  const [htmlPreviewCode, setHtmlPreviewCode] = useState(() =>
-    initialEditorState.language === "html" ? initialEditorState.code : STARTER_CODE.html
-  );
+  const [htmlPreviewCode, setHtmlPreviewCode] = useState(() => {
+    if (initialEditorState.language === "web") {
+      const savedWeb = initialEditorState.webCode || STARTER_CODE.web;
+      return buildWebProjectHtml(
+        savedWeb.html,
+        savedWeb.css,
+        savedWeb.javascript
+      );
+    }
+    return initialEditorState.language === "html" ? initialEditorState.code : STARTER_CODE.html;
+  });
   const [htmlRunTrigger, setHtmlRunTrigger] = useState(0);
 
   // AI Testing Mode state
@@ -108,17 +258,36 @@ function App() {
   }, []);
 
   useEffect(() => {
-
     if (!hasEditorChanged.current) {
       return undefined;
     }
 
     const timer = window.setTimeout(() => {
       try {
-        localStorage.setItem(
-          EDITOR_STORAGE_KEY,
-          JSON.stringify({ code, language, timestamp: Date.now() })
-        );
+        if (language === "web") {
+          localStorage.setItem(
+            EDITOR_STORAGE_KEY,
+            JSON.stringify({
+              language: "web",
+              code: webCode.html,
+              htmlCode: webCode.html,
+              cssCode: webCode.css,
+              jsCode: webCode.javascript,
+              webCode,
+              timestamp: Date.now(),
+            })
+          );
+        } else {
+          localStorage.setItem(
+            EDITOR_STORAGE_KEY,
+            JSON.stringify({
+              code,
+              language,
+              webCode,
+              timestamp: Date.now(),
+            })
+          );
+        }
       } catch {
         // The editor remains usable if localStorage cannot be written.
       }
@@ -126,11 +295,19 @@ function App() {
     saveTimer.current = timer;
 
     return () => window.clearTimeout(timer);
-  }, [code, language]);
+  }, [code, language, webCode]);
 
   const updateCode = (value) => {
     hasEditorChanged.current = true;
     setCode(value);
+  };
+
+  const updateWebCode = (tab, value) => {
+    hasEditorChanged.current = true;
+    setWebCode((prev) => ({
+      ...prev,
+      [tab]: value,
+    }));
   };
 
   const updateLanguage = (value) => {
@@ -138,6 +315,13 @@ function App() {
     setLanguage(value);
     if (value === "html") {
       setHtmlPreviewCode(STARTER_CODE.html);
+    } else if (value === "web") {
+      const combined = buildWebProjectHtml(
+        webCode.html,
+        webCode.css,
+        webCode.javascript
+      );
+      setHtmlPreviewCode(combined);
     }
   };
 
@@ -149,6 +333,17 @@ function App() {
       localStorage.removeItem(EDITOR_STORAGE_KEY);
     } catch {
       // The editor still resets if localStorage is unavailable.
+    }
+
+    if (language === "web") {
+      setWebCode({ ...STARTER_CODE.web });
+      const combined = buildWebProjectHtml(
+        STARTER_CODE.web.html,
+        STARTER_CODE.web.css,
+        STARTER_CODE.web.javascript
+      );
+      setHtmlPreviewCode(combined);
+      return;
     }
 
     const defaultCode = STARTER_CODE[language] || STARTER_CODE.python;
@@ -235,12 +430,23 @@ function App() {
   };
 
   const handleHtmlPreview = () => {
+    if (language === "web") {
+      const combined = buildWebProjectHtml(
+        webCode.html,
+        webCode.css,
+        webCode.javascript
+      );
+      setHtmlPreviewCode(combined);
+      setHtmlRunTrigger((prev) => prev + 1);
+      return;
+    }
+
     setHtmlPreviewCode(code);
     setHtmlRunTrigger((prev) => prev + 1);
   };
 
   const handleRun = () => {
-    if (language === "html") {
+    if (language === "html" || language === "web") {
       handleHtmlPreview();
       return;
     }
@@ -373,106 +579,113 @@ function App() {
       ) : (
         /* Main Studio Grid */
         <main className="grid flex-1 grid-cols-1 overflow-y-auto overflow-x-hidden min-h-0 lg:grid-cols-12 lg:overflow-hidden">
-        {/* Left Workbench: Editor & Run Inputs */}
-        <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto overflow-x-hidden lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
-          <div className="flex-1 flex flex-col min-h-[350px] sm:min-h-[400px] lg:min-h-0 overflow-hidden">
-            <CodeEditor
-              code={code}
-              setCode={updateCode}
-              language={language}
-              setLanguage={updateLanguage}
-              starterCode={STARTER_CODE}
-              onReset={resetEditor}
-              onRun={handleRun}
-              setResults={(val) => {
-                setResults(val);
-                setNormalResult(val);
-              }}
-              setError={(val) => {
-                setError(val);
-                setNormalError(val);
-              }}
-              clearTestCases={() => {
-                setTestCases([]);
-                setCodeType(null);
-              }}
-            />
-          </div>
-
-          {/* Standard Input & Run Controls pinned to the bottom of the editor */}
-          {!aiMode && (
-            <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 transition-all duration-200 relative z-20">
-              <NormalExecutionControls
-                stdin={stdin}
-                setStdin={setStdin}
-                onExecute={handleRun}
-                loading={normalLoading}
+          {/* Left Workbench: Editor & Run Inputs */}
+          <section className="flex flex-col border-b border-[#1e293b] overflow-y-auto overflow-x-hidden lg:col-span-7 lg:border-b-0 lg:border-r min-h-0">
+            <div className="flex-1 flex flex-col min-h-[350px] sm:min-h-[400px] lg:min-h-0 overflow-hidden">
+              <CodeEditor
                 code={code}
+                setCode={updateCode}
                 language={language}
+                setLanguage={updateLanguage}
+                starterCode={STARTER_CODE}
+                onReset={resetEditor}
+                onRun={handleRun}
+                webCode={webCode}
+                setWebCode={updateWebCode}
+                setResults={(val) => {
+                  setResults(val);
+                  setNormalResult(val);
+                }}
+                setError={(val) => {
+                  setError(val);
+                  setNormalError(val);
+                }}
+                clearTestCases={() => {
+                  setTestCases([]);
+                  setCodeType(null);
+                }}
               />
             </div>
-          )}
-        </section>
 
-        {/* Right Workbench: AI Config & Execution Output Console */}
-        <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-3 sm:p-4 lg:col-span-5">
-          {aiMode ? (
-            language === "html" ? (
-              <div className="flex h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0 flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 text-center shadow-md">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFA239]/10 text-[#FFA239]">
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+            {/* Standard Input & Run Controls pinned to the bottom of the editor */}
+            {!aiMode && (
+              <div className="shrink-0 border-t border-[#1e293b] bg-[#0f172a] p-3 sm:p-4 transition-all duration-200 relative z-20">
+                <NormalExecutionControls
+                  stdin={stdin}
+                  setStdin={setStdin}
+                  onExecute={handleRun}
+                  loading={normalLoading}
+                  code={
+                    language === "web"
+                      ? (webCode.html || webCode.css || webCode.javascript || "")
+                      : code
+                  }
+                  language={language}
+                />
+              </div>
+            )}
+          </section>
+
+          {/* Right Workbench: AI Config & Execution Output Console */}
+          <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-3 sm:p-4 lg:col-span-5">
+            {aiMode ? (
+              (language === "html" || language === "web") ? (
+                <div className="flex h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0 flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 text-center shadow-md">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFA239]/10 text-[#FFA239]">
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="mb-1 font-mono text-sm font-bold uppercase text-[#FFA239]">
+                    AI Testing Not Available for {language === "web" ? "Web" : "HTML"}
+                  </h3>
+                  <p className="max-w-sm text-xs text-[#8b949e]">
+                    AI test generation synthesizes unit test cases for executable functions and programs. {language === "web" ? "Web projects are" : "HTML is"} rendered directly via the browser preview.
+                  </p>
                 </div>
-                <h3 className="mb-1 font-mono text-sm font-bold uppercase text-[#FFA239]">
-                  AI Testing Not Available for HTML
-                </h3>
-                <p className="max-w-sm text-xs text-[#8b949e]">
-                  AI test generation synthesizes unit test cases for executable functions and programs. HTML is rendered directly via the browser preview.
-                </p>
+              ) : (
+                <div className="space-y-4">
+                  <TestControls
+                    count={count}
+                    setCount={setCount}
+                    description={description}
+                    setDescription={setDescription}
+                    onGenerate={handleGenerate}
+                    loading={loading}
+                    code={code}
+                  />
+
+                  <TestCaseList
+                    testCases={testCases}
+                    setTestCases={setTestCases}
+                    codeType={codeType}
+                    onRunSelected={handleRunSelected}
+                    loading={loading}
+                  />
+
+                  <TestResults results={results} loading={loading} error={error} />
+                </div>
+              )
+            ) : (language === "html" || language === "web") ? (
+              <div className="h-full min-h-[350px] sm:min-h-[400px] lg:min-h-0">
+                <HtmlPreviewPanel
+                  htmlCode={htmlPreviewCode}
+                  runTrigger={htmlRunTrigger}
+                  onRun={handleRun}
+                  isWebMode={language === "web"}
+                />
               </div>
             ) : (
-              <div className="space-y-4">
-                <TestControls
-                  count={count}
-                  setCount={setCount}
-                  description={description}
-                  setDescription={setDescription}
-                  onGenerate={handleGenerate}
-                  loading={loading}
-                  code={code}
+              <div className="h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0">
+                <NormalExecutionResults
+                  result={normalResult}
+                  loading={normalLoading}
+                  error={normalError}
                 />
-
-                <TestCaseList
-                  testCases={testCases}
-                  setTestCases={setTestCases}
-                  codeType={codeType}
-                  onRunSelected={handleRunSelected}
-                  loading={loading}
-                />
-
-                <TestResults results={results} loading={loading} error={error} />
               </div>
-            )
-          ) : language === "html" ? (
-            <div className="h-full min-h-[350px] sm:min-h-[400px] lg:min-h-0">
-              <HtmlPreviewPanel
-                htmlCode={htmlPreviewCode}
-                runTrigger={htmlRunTrigger}
-                onRun={handleRun}
-              />
-            </div>
-          ) : (
-            <div className="h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0">
-              <NormalExecutionResults
-                result={normalResult}
-                loading={normalLoading}
-                error={normalError}
-              />
-            </div>
-          )}
-        </section>
-      </main>
+            )}
+          </section>
+        </main>
       )}
     </div>
   );
