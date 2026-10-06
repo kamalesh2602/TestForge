@@ -4,6 +4,37 @@ Comprehensive technical reference, architecture guide, and developer manual for 
 
 ---
 
+## Table of Contents
+
+- [1. Overview](#1-overview)
+  - [Core Problem Solved](#core-problem-solved)
+- [2. How TestForge Works](#2-how-testforge-works)
+- [3. Architecture](#3-architecture)
+  - [Frontend](#frontend)
+  - [Backend](#backend)
+  - [Code Execution](#code-execution)
+  - [AI Testing Pipeline](#ai-testing-pipeline)
+- [4. Features](#4-features)
+- [5. Supported Languages](#5-supported-languages)
+- [6. Project Structure](#6-project-structure)
+- [7. Local Development](#7-local-development)
+  - [Prerequisites](#prerequisites)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [8. Environment Variables](#8-environment-variables)
+- [9. API Endpoints](#9-api-endpoints)
+- [10. Testing](#10-testing)
+  - [Backend Tests](#backend-tests)
+  - [Frontend Build](#frontend-build)
+- [11. CI/CD](#11-cicd)
+- [12. Deployment](#12-deployment)
+  - [Frontend Deployment (Vercel)](#frontend-deployment-vercel)
+  - [Backend Deployment (Render)](#backend-deployment-render)
+- [13. Limitations and Considerations](#13-limitations-and-considerations)
+- [14. Future Improvements](#14-future-improvements)
+
+---
+
 ## 1. Overview
 
 **TestForge** is an open-source automated testing platform and web-based code execution environment. It bridges the gap between AI developer assistance and deterministic software verification.
