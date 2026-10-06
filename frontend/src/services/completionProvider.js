@@ -316,6 +316,96 @@ export function registerCompletionProviders(monaco) {
       return { suggestions };
     },
   });
+
+  // ---------------------------------------------------------------------------
+  // C COMPLETION PROVIDER
+  // ---------------------------------------------------------------------------
+  monaco.languages.registerCompletionItemProvider("c", {
+    triggerCharacters: [".", ">", " ", "<", "#"],
+    provideCompletionItems(model, position) {
+      const wordInfo = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: wordInfo.startColumn,
+        endColumn: wordInfo.endColumn,
+      };
+
+      const suggestions = [];
+
+      // C Keywords & Types
+      const cKeywords = [
+        "int", "char", "float", "double", "void", "short", "long", "unsigned",
+        "signed", "return", "if", "else", "for", "while", "do", "switch",
+        "case", "default", "break", "continue", "goto", "struct", "union",
+        "enum", "typedef", "sizeof", "static", "const", "volatile", "extern",
+        "register", "auto", "NULL"
+      ];
+      cKeywords.forEach((kw) => {
+        suggestions.push({
+          label: kw,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: kw,
+          range,
+        });
+      });
+
+      // C Standard Library Functions
+      const cStdlib = [
+        { label: "printf", detail: "int printf(const char *format, ...)", insertText: "printf(\"${1:%s}\\n\", ${2:args});", doc: "Prints formatted output to stdout" },
+        { label: "scanf", detail: "int scanf(const char *format, ...)", insertText: "scanf(\"${1:%d}\", &${2:var});", doc: "Reads formatted input from stdin" },
+        { label: "puts", detail: "int puts(const char *str)", insertText: "puts(${1:str});", doc: "Writes string to stdout followed by newline" },
+        { label: "getchar", detail: "int getchar(void)", insertText: "getchar()", doc: "Reads next character from stdin" },
+        { label: "putchar", detail: "int putchar(int char)", insertText: "putchar(${1:c});", doc: "Writes character to stdout" },
+        { label: "malloc", detail: "void *malloc(size_t size)", insertText: "malloc(${1:size})", doc: "Allocates requested memory on the heap" },
+        { label: "calloc", detail: "void *calloc(size_t num, size_t size)", insertText: "calloc(${1:num}, ${2:size})", doc: "Allocates and zero-initializes memory on heap" },
+        { label: "realloc", detail: "void *realloc(void *ptr, size_t size)", insertText: "realloc(${1:ptr}, ${2:new_size})", doc: "Reallocates memory chunk with new size" },
+        { label: "free", detail: "void free(void *ptr)", insertText: "free(${1:ptr});", doc: "Frees heap memory" },
+        { label: "strlen", detail: "size_t strlen(const char *str)", insertText: "strlen(${1:str})", doc: "Computes length of string" },
+        { label: "strcpy", detail: "char *strcpy(char *dest, const char *src)", insertText: "strcpy(${1:dest}, ${2:src});", doc: "Copies string from src to dest" },
+        { label: "strcmp", detail: "int strcmp(const char *str1, const char *str2)", insertText: "strcmp(${1:str1}, ${2:str2})", doc: "Compares two strings" },
+        { label: "exit", detail: "void exit(int status)", insertText: "exit(${1:0});", doc: "Terminates the calling process" },
+      ];
+      cStdlib.forEach((item) => {
+        suggestions.push({
+          label: item.label,
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: item.detail,
+          documentation: item.doc,
+          insertText: item.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      // C Snippets
+      const cSnippets = [
+        { label: "#include <stdio.h>", detail: "Standard I/O header", insertText: "#include <stdio.h>", doc: "Standard input/output functions" },
+        { label: "#include <stdlib.h>", detail: "General utilities header", insertText: "#include <stdlib.h>", doc: "Memory management, process control, etc." },
+        { label: "#include <string.h>", detail: "String handling header", insertText: "#include <string.h>", doc: "String handling utilities" },
+        { label: "#include <math.h>", detail: "Common mathematical functions", insertText: "#include <math.h>", doc: "Mathematical functions" },
+        { label: "main", detail: "int main() { ... }", insertText: "int main() {\n\t${0}\n\treturn 0;\n}", doc: "Main program entry point" },
+        { label: "main args", detail: "int main(int argc, char *argv[])", insertText: "int main(int argc, char *argv[]) {\n\t${0}\n\treturn 0;\n}", doc: "Main program entry point with arguments" },
+        { label: "for loop", detail: "for (int i = 0; i < n; i++)", insertText: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n\t${0}\n}", doc: "Standard index-based for loop" },
+        { label: "while loop", detail: "while (...) { ... }", insertText: "while (${1:condition}) {\n\t${0}\n}", doc: "Standard while loop" },
+        { label: "struct definition", detail: "struct Name { ... };", insertText: "struct ${1:Name} {\n\t${0}\n};", doc: "Structure declaration" },
+        { label: "typedef struct", detail: "typedef struct { ... } Name;", insertText: "typedef struct {\n\t${0}\n} ${1:Name};", doc: "Typedef structure declaration" },
+      ];
+      cSnippets.forEach((snip) => {
+        suggestions.push({
+          label: snip.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          detail: snip.detail,
+          documentation: snip.doc,
+          insertText: snip.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      return { suggestions };
+    },
+  });
 }
 
 // -----------------------------------------------------------------------------

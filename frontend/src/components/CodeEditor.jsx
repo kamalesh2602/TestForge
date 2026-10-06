@@ -182,6 +182,9 @@ function CodeEditor({
           if (language === "python") {
             filename = "main.py";
             mimeType = "text/x-python";
+          } else if (language === "c") {
+            filename = "main.c";
+            mimeType = "text/x-c";
           } else if (language === "javascript") {
             filename = "main.js";
             mimeType = "text/javascript";
@@ -219,6 +222,7 @@ function CodeEditor({
     }
     if (language === "python") return { ext: "py", accept: ".py" };
     if (language === "java") return { ext: "java", accept: ".java" };
+    if (language === "c") return { ext: "c", accept: ".c,.h" };
     if (language === "javascript") return { ext: "js", accept: ".js" };
     return { ext: "html", accept: ".html,.htm" };
   };
@@ -295,6 +299,7 @@ function CodeEditor({
           >
             <option value="python">Python</option>
             <option value="java">Java</option>
+            <option value="c">C</option>
             <option value="javascript">JavaScript</option>
             <option value="html">HTML</option>
             <option value="web">Web (HTML + CSS + JS)</option>
