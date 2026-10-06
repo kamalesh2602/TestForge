@@ -2,7 +2,7 @@
 
 TestForge is a modern developer workbench that combines sandboxed multi-language code execution with AI-powered automated test generation. It allows developers to write, format, and execute code in Python, Java, and JavaScript, as well as automatically generate, customize, and run test harnesses against their programs and functions.
 
-## Live Demo
+## Live
 
 Try the live application: [https://test-forge-ebon.vercel.app/](https://test-forge-ebon.vercel.app/)
 
