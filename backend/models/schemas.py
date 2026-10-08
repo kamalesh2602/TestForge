@@ -50,7 +50,7 @@ class ExecuteRequest(BaseModel):
     stdin: str = ""
     language: str = Field(
         default="python",
-        pattern="^(python|java|javascript|c)$",
+        pattern="^(python|java|javascript|c|cpp|c\\+\\+)$",
     )
 
 

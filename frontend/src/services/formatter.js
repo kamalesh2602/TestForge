@@ -90,5 +90,9 @@ export async function formatCode(code, language) {
     throw new Error("C code formatting is not currently supported in the editor.");
   }
 
+  if (language === "cpp") {
+    throw new Error("C++ code formatting is not currently supported in the editor.");
+  }
+
   throw new Error(`Unsupported formatting language: ${language}`);
 }

@@ -26,6 +26,16 @@ def test_execute_request_supports_c():
     assert req.stdin == "123"
 
 
+def test_execute_request_supports_cpp():
+    req = ExecuteRequest(code='#include <iostream>\nint main() { return 0; }', language="cpp", stdin="123")
+    assert req.language == "cpp"
+    assert req.stdin == "123"
+
+    req_alias = ExecuteRequest(code='#include <iostream>\nint main() { return 0; }', language="c++", stdin="456")
+    assert req_alias.language == "c++"
+    assert req_alias.stdin == "456"
+
+
 def test_test_generation_request_valid():
     req = TestGenerationRequest(code="def foo(): pass", language="javascript", count=3)
     assert req.count == 3
