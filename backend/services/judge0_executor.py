@@ -42,6 +42,9 @@ class Judge0Executor(Executor):
         self.c_language_id = int(
             os.getenv("JUDGE0_C_LANGUAGE_ID", "103")
         )
+        self.cpp_language_id = int(
+            os.getenv("JUDGE0_CPP_LANGUAGE_ID", "105")
+        )
 
     def _submit(
         self,
@@ -229,6 +232,22 @@ class Judge0Executor(Executor):
         result = self._submit(
             source_code=code,
             language_id=self.c_language_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    def execute_cpp(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=code,
+            language_id=self.cpp_language_id,
             stdin=stdin,
             timeout=timeout,
         )

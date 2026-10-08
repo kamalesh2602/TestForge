@@ -17,7 +17,7 @@ Writing unit test cases manually can be tedious and repetitive. TestForge solves
 
 ## Features
 
-- **Multi-language code execution & preview**: Run Python, Java, and JavaScript execution or render HTML web previews directly in the browser workbench.
+- **Multi-language code execution & preview**: Run Python, Java, C, C++, and JavaScript execution or render HTML web previews directly in the browser workbench.
 - **HTML Web Preview with Internal CSS**: Sandboxed HTML document rendering with embedded `<style>` support, workspace maximization, standalone tab popouts, and automatic tag completion (`<h1>` → `<h1>|</h1>`).
 - **AI-powered test generation**: Generate structured test cases tailored to functions or stdin-based programs.
 - **Editable and selectable test cases**: Modify inputs, expected outputs, arguments, or select specific test cases to run.
@@ -32,6 +32,8 @@ Writing unit test cases manually can be tedious and repetitive. TestForge solves
 
 - **Python** (Python 3.11+)
 - **Java** (OpenJDK 17+)
+- **C** (GCC / Clang)
+- **C++** (G++ / Clang)
 - **JavaScript** (Node.js)
 - **HTML** (Browser-based DOM & internal CSS preview)
 

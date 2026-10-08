@@ -340,6 +340,48 @@ class DockerExecutor(Executor):
             if container:
                 container.remove(force=True)
 
+    def execute_cpp(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        container = None
+
+        try:
+            container = self._create_container(
+                image="gcc:latest",
+                command=[
+                    "sh",
+                    "-c",
+                    "g++ -O2 /app/main.cpp -o /app/main && /app/main < /app/input.txt",
+                ],
+            )
+
+            tar_stream = self._create_archive(
+                {
+                    "main.cpp": code.encode(),
+                    "input.txt": stdin.encode(),
+                }
+            )
+
+            container.put_archive(
+                "/app",
+                tar_stream,
+            )
+
+            container.start()
+
+            return self._wait_for_result(
+                container,
+                timeout,
+            )
+
+        finally:
+            if container:
+                container.remove(force=True)
+
     def validate_javascript(
         self,
         code: str,
