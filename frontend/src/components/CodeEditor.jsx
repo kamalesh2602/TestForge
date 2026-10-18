@@ -68,7 +68,7 @@ function CodeEditor({
     if (!registeredProviders.current) {
       registeredProviders.current = true;
       registerCompletionProviders(monaco);
-      ["javascript", "java", "python", "html", "css"].forEach((langId) => {
+      ["javascript", "java", "python", "html", "css", "c", "cpp"].forEach((langId) => {
         monaco.languages.registerDocumentFormattingEditProvider(langId, {
           async provideDocumentFormattingEdits(model) {
             try {
