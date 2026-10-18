@@ -5,6 +5,39 @@ import parserHtml from "prettier/plugins/html";
 import parserPostcss from "prettier/plugins/postcss";
 import prettierPluginJava from "prettier-plugin-java";
 import { formatCodeAPI } from "./api.js";
+import initClangFormat, { format as clangFormat } from "@wasm-fmt/clang-format/vite";
+
+let clangFormatInitialized = false;
+let clangFormatInitPromise = null;
+
+async function ensureClangFormat() {
+  if (clangFormatInitialized) return;
+  if (clangFormatInitPromise) return clangFormatInitPromise;
+
+  clangFormatInitPromise = (async () => {
+    try {
+      if (
+        typeof window === "undefined" &&
+        typeof globalThis !== "undefined" &&
+        Boolean(globalThis.process?.versions?.node)
+      ) {
+        const fsMod = "node:fs/promises";
+        const { readFile } = await import(/* @vite-ignore */ fsMod);
+        const wasmPath = new URL("../../node_modules/@wasm-fmt/clang-format/clang-format.wasm", import.meta.url);
+        const bytes = await readFile(wasmPath);
+        await initClangFormat(bytes);
+      } else {
+        await initClangFormat();
+      }
+      clangFormatInitialized = true;
+    } catch (err) {
+      clangFormatInitPromise = null;
+      throw err;
+    }
+  })();
+
+  return clangFormatInitPromise;
+}
 
 export async function formatCode(code, language) {
   if (!code || !code.trim()) {
@@ -40,7 +73,7 @@ export async function formatCode(code, language) {
       const msg = err.message || "Failed to format JavaScript code";
       // Extract main syntax error message line if available
       const cleanMsg = msg.split("\n")[0];
-      throw new Error(`JavaScript formatting error: ${cleanMsg}`);
+      throw new Error(`JavaScript formatting error: ${cleanMsg}`, { cause: err });
     }
   }
 
@@ -55,7 +88,7 @@ export async function formatCode(code, language) {
     } catch (err) {
       const msg = err.message || "Failed to format Java code";
       const cleanMsg = msg.split("\n")[0];
-      throw new Error(`Java formatting error: ${cleanMsg}`);
+      throw new Error(`Java formatting error: ${cleanMsg}`, { cause: err });
     }
   }
 
@@ -70,7 +103,7 @@ export async function formatCode(code, language) {
     } catch (err) {
       const msg = err.message || "Failed to format HTML code";
       const cleanMsg = msg.split("\n")[0];
-      throw new Error(`HTML formatting error: ${cleanMsg}`);
+      throw new Error(`HTML formatting error: ${cleanMsg}`, { cause: err });
     }
   }
 
@@ -82,16 +115,38 @@ export async function formatCode(code, language) {
       }
       throw new Error("Invalid response from format service");
     } catch (err) {
-      throw new Error(err.message || "Python formatting error");
+      throw new Error(err.message || "Python formatting error", { cause: err });
     }
   }
 
   if (language === "c") {
-    throw new Error("C code formatting is not currently supported in the editor.");
+    try {
+      await ensureClangFormat();
+      const formatted = clangFormat(code, "main.c", "LLVM");
+      if (typeof formatted !== "string" || !formatted) {
+        throw new Error("Formatting produced invalid output");
+      }
+      return formatted;
+    } catch (err) {
+      const msg = err.message || "Failed to format C code";
+      const cleanMsg = msg.split("\n")[0];
+      throw new Error(`C formatting error: ${cleanMsg}`, { cause: err });
+    }
   }
 
   if (language === "cpp") {
-    throw new Error("C++ code formatting is not currently supported in the editor.");
+    try {
+      await ensureClangFormat();
+      const formatted = clangFormat(code, "main.cpp", "LLVM");
+      if (typeof formatted !== "string" || !formatted) {
+        throw new Error("Formatting produced invalid output");
+      }
+      return formatted;
+    } catch (err) {
+      const msg = err.message || "Failed to format C++ code";
+      const cleanMsg = msg.split("\n")[0];
+      throw new Error(`C++ formatting error: ${cleanMsg}`, { cause: err });
+    }
   }
 
   throw new Error(`Unsupported formatting language: ${language}`);
