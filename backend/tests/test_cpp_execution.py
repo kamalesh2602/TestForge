@@ -213,3 +213,114 @@ def test_api_execute_cpp_alias_endpoint():
         assert resp.json()["status"] == "completed"
         assert resp.json()["output"] == "Hello from C++ alias!\n"
         assert mock_exec.call_count == 1
+
+
+def test_api_execute_cpp_empty_code_rejected():
+    resp = client.post(
+        "/execute",
+        json={
+            "code": "",
+            "language": "cpp",
+            "stdin": "",
+        },
+    )
+    assert resp.status_code == 422
+
+
+def test_docker_executor_execute_cpp_success():
+    from unittest.mock import MagicMock
+    from services.docker_executor import DockerExecutor
+    with patch("docker.from_env") as mock_docker:
+        mock_client = mock_docker.return_value
+        mock_container = MagicMock()
+        mock_client.containers.create.return_value = mock_container
+
+        mock_container.wait.return_value = {"StatusCode": 0}
+        mock_container.logs.return_value = b"Hello from Docker C++!\n"
+
+        executor = DockerExecutor()
+        res = executor.execute_cpp('#include <iostream>\nint main() { std::cout << "Hello" << std::endl; return 0; }', stdin="456")
+
+        assert res["status"] == "completed"
+        assert res["output"] == "Hello from Docker C++!\n"
+        assert res["exit_code"] == 0
+
+        # Verify container configuration
+        create_args = mock_client.containers.create.call_args
+        assert create_args.kwargs["image"] == "gcc:latest"
+        assert "g++ -O2 /app/main.cpp -o /app/main" in create_args.kwargs["command"][2]
+        mock_container.remove.assert_called_once_with(force=True)
+
+
+def test_docker_executor_execute_cpp_timeout():
+    from unittest.mock import MagicMock
+    from services.docker_executor import DockerExecutor
+    with patch("docker.from_env") as mock_docker:
+        mock_client = mock_docker.return_value
+        mock_container = MagicMock()
+        mock_client.containers.create.return_value = mock_container
+
+        mock_container.wait.side_effect = Exception("Timed out")
+
+        executor = DockerExecutor()
+        res = executor.execute_cpp('#include <iostream>\nint main() { while(true); }')
+
+        assert res["status"] == "timeout"
+        assert "Execution timed out" in res["error"]
+        mock_container.kill.assert_called_once()
+        mock_container.remove.assert_called_once_with(force=True)
+
+
+def test_judge0_polling_cpp_termination_immediate_on_success():
+    from unittest.mock import MagicMock
+    executor = Judge0Executor()
+    with patch("httpx.Client") as mock_client_cls:
+        mock_http = MagicMock()
+        mock_client_cls.return_value.__enter__.return_value = mock_http
+        post_resp = MagicMock()
+        post_resp.json.return_value = {"token": "test-cpp-token"}
+        mock_http.post.return_value = post_resp
+
+        get_resp = MagicMock()
+        get_resp.json.return_value = {
+            "status": {"id": 3, "description": "Accepted"},
+            "stdout": "Cpp Success\n",
+            "stderr": "",
+            "exit_code": 0,
+        }
+        mock_http.get.return_value = get_resp
+
+        with patch("time.sleep") as mock_sleep:
+            res = executor.execute_cpp("int main() { return 0; }")
+
+            assert res["status"] == "completed"
+            assert res["output"] == "Cpp Success\n"
+            assert mock_http.get.call_count == 1
+            assert mock_sleep.call_count == 1
+
+
+def test_judge0_polling_cpp_termination_on_runtime_error():
+    from unittest.mock import MagicMock
+    executor = Judge0Executor()
+    with patch("httpx.Client") as mock_client_cls:
+        mock_http = MagicMock()
+        mock_client_cls.return_value.__enter__.return_value = mock_http
+        post_resp = MagicMock()
+        post_resp.json.return_value = {"token": "test-cpp-rt-token"}
+        mock_http.post.return_value = post_resp
+
+        get_resp = MagicMock()
+        get_resp.json.return_value = {
+            "status": {"id": 11, "description": "Runtime Error"},
+            "stdout": "",
+            "stderr": "SIGSEGV\n",
+            "exit_code": 139,
+        }
+        mock_http.get.return_value = get_resp
+
+        with patch("time.sleep"):
+            res = executor.execute_cpp("crash code")
+            assert res["status"] == "error"
+            assert "SIGSEGV" in res["error"]
+            assert mock_http.get.call_count == 1
+

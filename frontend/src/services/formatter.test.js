@@ -189,4 +189,81 @@ return 0;
       spy.mockRestore();
     });
   });
+
+  describe("Idempotency across all supported languages", () => {
+    it("preserves formatted code when formatted a second time (JavaScript)", async () => {
+      const code = "function test(a, b) {\n  return a + b;\n}\n";
+      const second = await formatCode(code, "javascript");
+      expect(second).toBe(code);
+    });
+
+    it("preserves formatted code when formatted a second time (HTML)", async () => {
+      const html = "<div>\n  <p>Test</p>\n</div>\n";
+      const formatted = await formatCode(html, "html");
+      const second = await formatCode(formatted, "html");
+      expect(second).toBe(formatted);
+    });
+
+    it("preserves formatted code when formatted a second time (CSS)", async () => {
+      const css = "body {\n  margin: 0;\n}\n";
+      const formatted = await formatCode(css, "css");
+      const second = await formatCode(formatted, "css");
+      expect(second).toBe(formatted);
+    });
+
+    it("preserves formatted code when formatted a second time (Java)", async () => {
+      const java = "public class Solution {\n  public static void main(String[] args) {}\n}\n";
+      const formatted = await formatCode(java, "java");
+      const second = await formatCode(formatted, "java");
+      expect(second).toBe(formatted);
+    });
+  });
+
+  describe("Editor Formatting Contracts", () => {
+    it("preserves original code if formatting fails", async () => {
+      let codeState = "original_unformatted_code();";
+      let errorState = "";
+
+      const handleFormatSimulator = async (currentCode, lang) => {
+        try {
+          const formatted = await formatCode(currentCode, lang);
+          codeState = formatted;
+        } catch (err) {
+          errorState = err.message;
+        }
+      };
+
+      // Attempt to format with unsupported language
+      await handleFormatSimulator(codeState, "unsupported_lang");
+
+      // Original code was preserved
+      expect(codeState).toBe("original_unformatted_code();");
+      expect(errorState).toContain("Unsupported formatting language: unsupported_lang");
+    });
+
+    it("targets only the active editor in Web mode", async () => {
+      const webCode = {
+        html: "<div  ><h1>Unformatted</h1></div  >",
+        css: "body{margin:0;}",
+        javascript: "const  x=1;",
+      };
+
+      const updatedTabs = {};
+      const setWebCodeMock = (tab, newContent) => {
+        updatedTabs[tab] = newContent;
+      };
+
+      // Simulating handleFormat in Web Mode when active tab is CSS
+      const activeWebTab = "css";
+      const targetCode = webCode[activeWebTab];
+      const formatted = await formatCode(targetCode, activeWebTab);
+      setWebCodeMock(activeWebTab, formatted);
+
+      // Only CSS was updated, HTML and JS were untouched
+      expect(updatedTabs.css).toContain("body {");
+      expect(updatedTabs.html).toBeUndefined();
+      expect(updatedTabs.javascript).toBeUndefined();
+    });
+  });
 });
+
