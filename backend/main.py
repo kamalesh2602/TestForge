@@ -1,9 +1,9 @@
+import ipaddress
 import logging
 import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
@@ -30,15 +30,75 @@ load_dotenv()
 logger = logging.getLogger("testforge")
 
 
+def get_client_ip(request: Request) -> str:
+    """
+    Safely resolves the client IP address for rate limiting.
+    When running behind a trusted reverse proxy (Render sets RENDER=true,
+    or TRUST_PROXY=true in configuration), we extract and validate the
+    client IP from the X-Forwarded-For header.
+    Otherwise, we use the direct connection socket IP, falling back to 127.0.0.1.
+    """
+    is_behind_proxy = (
+        os.getenv("RENDER", "").lower() == "true"
+        or os.getenv("TRUST_PROXY", "false").lower() in ("true", "1")
+    )
+
+    if is_behind_proxy:
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            first_ip = forwarded.split(",")[0].strip()
+            try:
+                validated_ip = ipaddress.ip_address(first_ip)
+                return str(validated_ip)
+            except ValueError:
+                # Malformed or spoofed IP in header; ignore and fallback
+                pass
+
+    if request.client and request.client.host:
+        return request.client.host
+
+    return "127.0.0.1"
+
+
 app = FastAPI(title="TestForge")
 
 
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=get_client_ip,
 )
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        logger.error(
+            f"Unhandled server error on {request.method} {request.url.path}: {exc}",
+            exc_info=True,
+        )
+        response = JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal server error",
+                "message": "An unexpected error occurred. Please try again later.",
+            },
+        )
+
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none';"
+
+    if request.url.path in ("/execute", "/generate-tests", "/run-tests", "/analyze", "/format"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+
+    return response
 
 
 @app.exception_handler(RateLimitExceeded)
@@ -48,6 +108,7 @@ async def rate_limit_handler(
 ):
     return JSONResponse(
         status_code=429,
+        headers={"Retry-After": "60"},
         content={
             "error": "Rate limit exceeded",
             "message": "Too many requests. Please try again later.",
@@ -55,16 +116,28 @@ async def rate_limit_handler(
     )
 
 
-frontend_urls = os.getenv(
+
+raw_frontend_urls = os.getenv(
     "FRONTEND_URL",
     "http://localhost:5173",
-).split(",")
+)
+
+allowed_origins = [
+    url.strip()
+    for url in raw_frontend_urls.split(",")
+    if url.strip()
+]
+
+if not allowed_origins:
+    allowed_origins = ["http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[url.strip() for url in frontend_urls],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    max_age=600,
 )
 
 
@@ -260,12 +333,22 @@ def run_tests(
     results = []
 
     for test in test_request.tests:
+        if not isinstance(test, dict):
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "Each test case must be a JSON object."},
+            )
 
         # ------------------------------------------
         # Function
         # ------------------------------------------
 
         if analysis["code_type"] == "function":
+            if "arguments" not in test or not isinstance(test.get("arguments"), list):
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": "Function test case must include an 'arguments' array."},
+                )
 
             function_name = (
                 analysis["functions"][0]["name"]
@@ -303,29 +386,36 @@ def run_tests(
         # ------------------------------------------
 
         else:
+            raw_input = test.get("input", "")
+            stdin_val = str(raw_input) if raw_input is not None else ""
+            if len(stdin_val) > 65_536:
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": "Test input exceeds maximum allowed length (65536 characters)."},
+                )
 
             if test_request.language == "java":
 
                 result = executor.execute_java(
                     code=test_request.code,
-                    stdin=test["input"],
+                    stdin=stdin_val,
                 )
 
             elif test_request.language == "javascript":
 
                 result = executor.execute_javascript(
                     code=test_request.code,
-                    stdin=test["input"],
+                    stdin=stdin_val,
                 )
 
             else:
 
                 result = executor.execute(
                     code=test_request.code,
-                    stdin=test["input"],
+                    stdin=stdin_val,
                 )
 
-            input_value = test["input"]
+            input_value = stdin_val
 
         # ------------------------------------------
         # Compare Output
