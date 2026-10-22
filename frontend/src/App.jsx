@@ -707,4 +707,6 @@ function App() {
   );
 }
 
+export { getSavedEditorState, STARTER_CODE, EDITOR_STORAGE_KEY, EDITOR_STATE_MAX_AGE };
 export default App;
+
