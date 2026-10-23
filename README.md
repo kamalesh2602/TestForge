@@ -1,19 +1,19 @@
 # TestForge
 
-TestForge is a modern developer workbench that combines sandboxed multi-language code execution with AI-powered automated test generation. It allows developers to write, format, and execute code in Python, Java, and JavaScript, as well as automatically generate, customize, and run test harnesses against their programs and functions.
+TestForge is a modern developer workbench that combines sandboxed multi-language code execution with AI-powered automated test generation. It allows developers to write, format, and execute code in Python, Java, JavaScript, C, C++, Bash, and Go, alongside browser-based HTML previews. Developers can also generate, customize, and run test harnesses against supported programs and functions.
 
 ## Live
 
-Try the live application: [https://test-forge-ebon.vercel.app/](https://test-forge-ebon.vercel.app/)
+Try the live application: [TestForge](https://test-forge-ebon.vercel.app/)
 
 ## Overview
 
-Writing unit test cases manually can be tedious and repetitive. TestForge solves this problem by automating the test creation workflow while maintaining strict execution safety:
+Writing unit test cases manually can be tedious and repetitive. TestForge streamlines the test creation workflow while maintaining isolated code execution:
 
-1. **Static Code Analysis**: Inspects Python AST, Java structure, or JavaScript syntax to determine if code is a standalone program or a function.
-2. **AI Test Generation**: Leverages LLMs (Google Gemini / OpenRouter fallback) to generate structured test cases (inputs, arguments, expected outputs, descriptions).
-3. **Editable & Selectable Tests**: Developers review, edit, or select generated tests in an intuitive workbench UI.
-4. **Deterministic Sandboxed Execution**: Executes test harnesses inside isolated sandboxes (Docker / Judge0) and compares actual vs. expected results deterministically.
+1. **Static Code Analysis**: Inspects Python AST, Java structure, or JavaScript syntax to determine whether code is a standalone program or a function.
+2. **AI Test Generation**: Uses LLMs (Google Gemini with OpenRouter fallback) to generate structured test cases containing inputs, arguments, expected outputs, and descriptions.
+3. **Editable & Selectable Tests**: Developers can review, edit, and select generated tests in the workbench UI.
+4. **Sandboxed Execution**: Executes code and test harnesses using the configured execution environments, including Judge0 and Docker where applicable, and compares actual versus expected results.
 
 ## Features
 
@@ -40,33 +40,33 @@ Writing unit test cases manually can be tedious and repetitive. TestForge solves
 ## Tech Stack
 
 - **Frontend**: React 19, Vite, Tailwind CSS v4, Monaco Editor (`@monaco-editor/react`), Prettier
-- **Backend**: Python 3.11+, FastAPI, SlowAPI (rate limiting), Pydantic v2, `uv` package manager
-- **Execution & Sandboxing**: Docker Containers, Judge0 API
-- **AI / LLM Integration**: Google Gemini (`google-genai`), OpenRouter (fallback API)
-- **CI / CD**: GitHub Actions (`.github/workflows/ci.yml`)
-- **Deployment**: Vercel (Frontend), Render (Backend)
+- **Backend**: Python 3.11+, FastAPI, SlowAPI, Pydantic v2, `uv` package manager
+- **Execution and Sandboxing**: Judge0 API and Docker-based execution environments where applicable
+- **AI / LLM Integration**: Google Gemini (`google-genai`), OpenRouter fallback API
+- **CI**: GitHub Actions (`.github/workflows/ci.yml`)
+- **Deployment**: Vercel (frontend), Render (backend)
 
 ## Project Structure
 
 ```text
 TestForge/
-├── frontend/             # React + Vite application
-│   ├── src/              # Workbench components, services & editor utilities
+├── frontend/              # React + Vite application
+│   ├── src/               # Workbench components, services, and editor utilities
 │   └── package.json
-├── backend/              # FastAPI application
-│   ├── main.py           # API routes & server initialization
-│   ├── models/           # Pydantic data schemas
-│   ├── services/         # AST analysis, code execution, harness & AI generation
-│   └── tests/            # Backend unit & integration tests
-├── .github/workflows/    # GitHub Actions CI workflow
-├── README.md             # Project introduction & overview
-└── Documentation.md      # Comprehensive technical reference manual
+├── backend/               # FastAPI application
+│   ├── main.py            # API routes and server initialization
+│   ├── models/             # Pydantic data schemas
+│   ├── services/           # Analysis, execution, harness, and AI services
+│   └── tests/              # Backend automated tests
+├── .github/workflows/      # GitHub Actions CI workflow
+├── README.md               # Project introduction and overview
+└── Documentation.md        # Comprehensive technical reference
 ```
 
 ## Documentation
 
-For complete technical documentation, local setup guides, architecture breakdown, API reference, and deployment details, see [Documentation.md](Documentation.md).
+For detailed technical documentation, local setup instructions, architecture, API reference, and deployment details, see [Documentation.md](Documentation.md).
 
 ## Repository
 
-GitHub Repository: [https://github.com/kamalesh2602/TestForge](https://github.com/kamalesh2602/TestForge)
+[GitHub Repository](https://github.com/kamalesh2602/TestForge)
