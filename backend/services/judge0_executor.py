@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import time
@@ -26,6 +27,50 @@ function input() {
 
 
 
+def get_judge0_bash_language_id(api_url: str | None = None) -> int | None:
+    """
+    Queries the Judge0 /languages endpoint to verify and discover
+    the Bash language ID available on the configured instance.
+    """
+    url = (api_url or os.getenv("JUDGE0_API_URL", "https://ce.judge0.com")).rstrip("/")
+    if not url or url == "your_judge0_url":
+        url = "https://ce.judge0.com"
+    try:
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"{url}/languages")
+            if resp.status_code == 200:
+                languages = resp.json()
+                for item in languages:
+                    name = item.get("name", "").lower()
+                    if "bash" in name:
+                        return item.get("id")
+    except Exception:
+        pass
+    return None
+
+
+def get_judge0_go_language_id(api_url: str | None = None) -> int | None:
+    """
+    Queries the Judge0 /languages endpoint to verify and discover
+    the Go language ID available on the configured instance.
+    """
+    url = (api_url or os.getenv("JUDGE0_API_URL", "https://ce.judge0.com")).rstrip("/")
+    if not url or url == "your_judge0_url":
+        url = "https://ce.judge0.com"
+    try:
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"{url}/languages")
+            if resp.status_code == 200:
+                languages = resp.json()
+                for item in languages:
+                    name = item.get("name", "").strip()
+                    if re.match(r"^(go|golang)\b", name, re.IGNORECASE):
+                        return item.get("id")
+    except Exception:
+        pass
+    return None
+
+
 class Judge0Executor(Executor):
 
     def __init__(self):
@@ -39,6 +84,32 @@ class Judge0Executor(Executor):
         self.javascript_language_id = int(
             os.getenv("JUDGE0_JAVASCRIPT_LANGUAGE_ID", "102")
         )
+        self.c_language_id = int(
+            os.getenv("JUDGE0_C_LANGUAGE_ID", "103")
+        )
+        self.cpp_language_id = int(
+            os.getenv("JUDGE0_CPP_LANGUAGE_ID", "105")
+        )
+        self._bash_language_id = (
+            int(os.getenv("JUDGE0_BASH_LANGUAGE_ID"))
+            if os.getenv("JUDGE0_BASH_LANGUAGE_ID")
+            else (46 if self.api_url == "https://ce.judge0.com" else None)
+        )
+        self._go_language_id = (
+            int(os.getenv("JUDGE0_GO_LANGUAGE_ID"))
+            if os.getenv("JUDGE0_GO_LANGUAGE_ID")
+            else (60 if self.api_url == "https://ce.judge0.com" else None)
+        )
+
+    @staticmethod
+    def _safe_b64_decode(val: str | None) -> str:
+        if not val:
+            return ""
+        try:
+            raw = base64.b64decode(val.encode("ascii"), validate=True)
+            return raw.decode("utf-8")
+        except Exception:
+            return val
 
     def _submit(
         self,
@@ -49,9 +120,9 @@ class Judge0Executor(Executor):
     ) -> dict:
 
         payload = {
-            "source_code": source_code,
+            "source_code": base64.b64encode(source_code.encode("utf-8")).decode("ascii"),
             "language_id": language_id,
-            "stdin": stdin,
+            "stdin": base64.b64encode(stdin.encode("utf-8")).decode("ascii") if stdin else "",
             "cpu_time_limit": timeout,
         }
 
@@ -60,7 +131,7 @@ class Judge0Executor(Executor):
             response = client.post(
                 f"{self.api_url}/submissions",
                 params={
-                    "base64_encoded": "false",
+                    "base64_encoded": "true",
                     "wait": "false",
                 },
                 json=payload,
@@ -70,14 +141,15 @@ class Judge0Executor(Executor):
 
             token = response.json()["token"]
 
-            for _ in range(30):
+            poll_delays = [0.25, 0.5, 0.75] + [1.0] * 27
+            for delay in poll_delays:
 
-                time.sleep(1)
+                time.sleep(delay)
 
                 result = client.get(
                     f"{self.api_url}/submissions/{token}",
                     params={
-                        "base64_encoded": "false",
+                        "base64_encoded": "true",
                     },
                 )
 
@@ -90,6 +162,9 @@ class Judge0Executor(Executor):
                 # 1 = In Queue
                 # 2 = Processing
                 if status_id not in (1, 2):
+                    for field in ("stdout", "stderr", "compile_output", "message"):
+                        if field in data and data[field]:
+                            data[field] = self._safe_b64_decode(data[field])
                     return data
 
         return {
@@ -215,6 +290,134 @@ class Judge0Executor(Executor):
         timeout: int = 5,
     ) -> dict:
         return self.execute_javascript(code=code, timeout=timeout)
+
+    def execute_c(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=code,
+            language_id=self.c_language_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    def execute_cpp(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=code,
+            language_id=self.cpp_language_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    @property
+    def bash_language_id(self) -> int | None:
+        env_id = os.getenv("JUDGE0_BASH_LANGUAGE_ID")
+        if env_id:
+            try:
+                return int(env_id)
+            except ValueError:
+                pass
+        if self._bash_language_id is None:
+            if self.api_url == "https://ce.judge0.com":
+                self._bash_language_id = 46
+            else:
+                self._bash_language_id = get_judge0_bash_language_id(self.api_url)
+        return self._bash_language_id
+
+    @bash_language_id.setter
+    def bash_language_id(self, value: int | None):
+        self._bash_language_id = value
+
+    def execute_bash(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        lang_id = self.bash_language_id
+        if not lang_id:
+            return {
+                "status": "error",
+                "output": "",
+                "error": "The configured Judge0 instance does not provide a suitable Bash runtime.",
+                "exit_code": 1,
+            }
+
+        result = self._submit(
+            source_code=code,
+            language_id=lang_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    @classmethod
+    def get_supported_bash_language_id(cls, api_url: str | None = None) -> int | None:
+        return get_judge0_bash_language_id(api_url)
+
+    @property
+    def go_language_id(self) -> int | None:
+        env_id = os.getenv("JUDGE0_GO_LANGUAGE_ID")
+        if env_id:
+            try:
+                return int(env_id)
+            except ValueError:
+                pass
+        if self._go_language_id is None:
+            if self.api_url == "https://ce.judge0.com":
+                self._go_language_id = 60
+            else:
+                self._go_language_id = get_judge0_go_language_id(self.api_url)
+        return self._go_language_id
+
+    @go_language_id.setter
+    def go_language_id(self, value: int | None):
+        self._go_language_id = value
+
+    def execute_go(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        lang_id = self.go_language_id
+        if not lang_id:
+            return {
+                "status": "error",
+                "output": "",
+                "error": "Go is not supported on the configured Judge0 instance.",
+                "exit_code": 1,
+            }
+
+        result = self._submit(
+            source_code=code,
+            language_id=lang_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    @classmethod
+    def get_supported_go_language_id(cls, api_url: str | None = None) -> int | None:
+        return get_judge0_go_language_id(api_url)
 
     def validate_java(
         self,

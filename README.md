@@ -2,7 +2,7 @@
 
 TestForge is a modern developer workbench that combines sandboxed multi-language code execution with AI-powered automated test generation. It allows developers to write, format, and execute code in Python, Java, JavaScript, C, C++, Bash, and Go, alongside browser-based HTML previews. Developers can also generate, customize, and run test harnesses against supported programs and functions.
 
-## Live Demo
+## Live
 
 Try the live application: [TestForge](https://test-forge-ebon.vercel.app/)
 
@@ -17,27 +17,25 @@ Writing unit test cases manually can be tedious and repetitive. TestForge stream
 
 ## Features
 
-- **Multi-language Code Execution**: Execute Python, Java, JavaScript, C, C++, Bash, and Go through the supported execution environments.
-- **HTML Web Preview**: Render HTML with internal CSS in a sandboxed browser preview, with preview maximization, standalone tab support, and automatic HTML tag completion.
-- **AI-powered Test Generation**: Generate structured test cases for supported functions and stdin-based programs.
-- **Editable and Selectable Test Cases**: Modify inputs, expected outputs, and arguments, or select specific test cases to run.
-- **Code Formatting**: Format supported languages using the configured language-specific formatters.
-- **IntelliSense and Code Suggestions**: In-editor autocompletion for supported languages.
-- **Persistent Editor State**: Automatically preserve draft code and language selection locally across page reloads, subject to the configured persistence period.
-- **Dynamic STDIN Input**: Provide custom standard input for program execution.
-- **Save and Upload Code**: Download source files locally or upload existing source files into the editor.
-- **Keyboard Shortcuts**: Run code using `Ctrl + Enter` or `Cmd + Enter`.
+- **Multi-language code execution & preview**: Run Python, Java, C, C++, and JavaScript execution or render HTML web previews directly in the browser workbench.
+- **HTML Web Preview with Internal CSS**: Sandboxed HTML document rendering with embedded `<style>` support, workspace maximization, standalone tab popouts, and automatic tag completion (`<h1>` → `<h1>|</h1>`).
+- **AI-powered test generation**: Generate structured test cases tailored to functions or stdin-based programs.
+- **Editable and selectable test cases**: Modify inputs, expected outputs, arguments, or select specific test cases to run.
+- **Code formatting**: Auto-format Python code (via Black) and HTML/JavaScript/Java code (via Prettier).
+- **IntelliSense / code suggestions**: In-editor autocompletion for language keywords, standard libraries, and built-in functions.
+- **Persistent editor state**: Automatically saves draft code and language selection locally across page reloads.
+- **Dynamic STDIN input**: Pass custom standard input data for program executions in IDE Mode.
+- **Save and upload code**: Download source code files locally or upload existing source files directly into the editor.
+- **Keyboard shortcuts**: Execute code or trigger test runs with `Ctrl+Enter` / `Cmd+Enter`.
 
 ## Supported Languages
 
-- **Python** — Python execution environment
-- **Java** — Java execution environment
-- **JavaScript** — Node.js execution environment
-- **C** — GCC-based execution through Judge0
-- **C++** — G++-based execution through Judge0
-- **Bash** — Bash script execution through Judge0
-- **Go** — Go program execution through Judge0
-- **HTML** — Browser-based rendering with DOM and internal CSS support
+- **Python** (Python 3.11+)
+- **Java** (OpenJDK 17+)
+- **C** (GCC / Clang)
+- **C++** (G++ / Clang)
+- **JavaScript** (Node.js)
+- **HTML** (Browser-based DOM & internal CSS preview)
 
 ## Tech Stack
 

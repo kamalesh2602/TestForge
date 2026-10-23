@@ -298,6 +298,116 @@ class DockerExecutor(Executor):
             timeout=timeout,
         )
 
+    def execute_c(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        container = None
+
+        try:
+            container = self._create_container(
+                image="gcc:latest",
+                command=[
+                    "sh",
+                    "-c",
+                    "gcc -O2 /app/main.c -o /app/main && /app/main < /app/input.txt",
+                ],
+            )
+
+            tar_stream = self._create_archive(
+                {
+                    "main.c": code.encode(),
+                    "input.txt": stdin.encode(),
+                }
+            )
+
+            container.put_archive(
+                "/app",
+                tar_stream,
+            )
+
+            container.start()
+
+            return self._wait_for_result(
+                container,
+                timeout,
+            )
+
+        finally:
+            if container:
+                container.remove(force=True)
+
+    def execute_cpp(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        container = None
+
+        try:
+            container = self._create_container(
+                image="gcc:latest",
+                command=[
+                    "sh",
+                    "-c",
+                    "g++ -O2 /app/main.cpp -o /app/main && /app/main < /app/input.txt",
+                ],
+            )
+
+            tar_stream = self._create_archive(
+                {
+                    "main.cpp": code.encode(),
+                    "input.txt": stdin.encode(),
+                }
+            )
+
+            container.put_archive(
+                "/app",
+                tar_stream,
+            )
+
+            container.start()
+
+            return self._wait_for_result(
+                container,
+                timeout,
+            )
+
+        finally:
+            if container:
+                container.remove(force=True)
+
+    def execute_bash(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        return {
+            "status": "error",
+            "output": "",
+            "error": "Bash execution is only supported via Judge0 executor.",
+            "exit_code": 1,
+        }
+
+    def execute_go(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        return {
+            "status": "error",
+            "output": "",
+            "error": "Go execution is only supported via Judge0 executor.",
+            "exit_code": 1,
+        }
+
     def validate_javascript(
         self,
         code: str,

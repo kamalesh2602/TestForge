@@ -316,6 +316,213 @@ export function registerCompletionProviders(monaco) {
       return { suggestions };
     },
   });
+
+  // ---------------------------------------------------------------------------
+  // C COMPLETION PROVIDER
+  // ---------------------------------------------------------------------------
+  monaco.languages.registerCompletionItemProvider("c", {
+    triggerCharacters: [".", ">", " ", "<", "#"],
+    provideCompletionItems(model, position) {
+      const wordInfo = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: wordInfo.startColumn,
+        endColumn: wordInfo.endColumn,
+      };
+
+      const suggestions = [];
+
+      // C Keywords & Types
+      const cKeywords = [
+        "int", "char", "float", "double", "void", "short", "long", "unsigned",
+        "signed", "return", "if", "else", "for", "while", "do", "switch",
+        "case", "default", "break", "continue", "goto", "struct", "union",
+        "enum", "typedef", "sizeof", "static", "const", "volatile", "extern",
+        "register", "auto", "NULL"
+      ];
+      cKeywords.forEach((kw) => {
+        suggestions.push({
+          label: kw,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: kw,
+          range,
+        });
+      });
+
+      // C Standard Library Functions
+      const cStdlib = [
+        { label: "printf", detail: "int printf(const char *format, ...)", insertText: "printf(\"${1:%s}\\n\", ${2:args});", doc: "Prints formatted output to stdout" },
+        { label: "scanf", detail: "int scanf(const char *format, ...)", insertText: "scanf(\"${1:%d}\", &${2:var});", doc: "Reads formatted input from stdin" },
+        { label: "puts", detail: "int puts(const char *str)", insertText: "puts(${1:str});", doc: "Writes string to stdout followed by newline" },
+        { label: "getchar", detail: "int getchar(void)", insertText: "getchar()", doc: "Reads next character from stdin" },
+        { label: "putchar", detail: "int putchar(int char)", insertText: "putchar(${1:c});", doc: "Writes character to stdout" },
+        { label: "malloc", detail: "void *malloc(size_t size)", insertText: "malloc(${1:size})", doc: "Allocates requested memory on the heap" },
+        { label: "calloc", detail: "void *calloc(size_t num, size_t size)", insertText: "calloc(${1:num}, ${2:size})", doc: "Allocates and zero-initializes memory on heap" },
+        { label: "realloc", detail: "void *realloc(void *ptr, size_t size)", insertText: "realloc(${1:ptr}, ${2:new_size})", doc: "Reallocates memory chunk with new size" },
+        { label: "free", detail: "void free(void *ptr)", insertText: "free(${1:ptr});", doc: "Frees heap memory" },
+        { label: "strlen", detail: "size_t strlen(const char *str)", insertText: "strlen(${1:str})", doc: "Computes length of string" },
+        { label: "strcpy", detail: "char *strcpy(char *dest, const char *src)", insertText: "strcpy(${1:dest}, ${2:src});", doc: "Copies string from src to dest" },
+        { label: "strcmp", detail: "int strcmp(const char *str1, const char *str2)", insertText: "strcmp(${1:str1}, ${2:str2})", doc: "Compares two strings" },
+        { label: "exit", detail: "void exit(int status)", insertText: "exit(${1:0});", doc: "Terminates the calling process" },
+      ];
+      cStdlib.forEach((item) => {
+        suggestions.push({
+          label: item.label,
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: item.detail,
+          documentation: item.doc,
+          insertText: item.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      // C Snippets
+      const cSnippets = [
+        { label: "#include <stdio.h>", detail: "Standard I/O header", insertText: "#include <stdio.h>", doc: "Standard input/output functions" },
+        { label: "#include <stdlib.h>", detail: "General utilities header", insertText: "#include <stdlib.h>", doc: "Memory management, process control, etc." },
+        { label: "#include <string.h>", detail: "String handling header", insertText: "#include <string.h>", doc: "String handling utilities" },
+        { label: "#include <math.h>", detail: "Common mathematical functions", insertText: "#include <math.h>", doc: "Mathematical functions" },
+        { label: "main", detail: "int main() { ... }", insertText: "int main() {\n\t${0}\n\treturn 0;\n}", doc: "Main program entry point" },
+        { label: "main args", detail: "int main(int argc, char *argv[])", insertText: "int main(int argc, char *argv[]) {\n\t${0}\n\treturn 0;\n}", doc: "Main program entry point with arguments" },
+        { label: "for loop", detail: "for (int i = 0; i < n; i++)", insertText: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n\t${0}\n}", doc: "Standard index-based for loop" },
+        { label: "while loop", detail: "while (...) { ... }", insertText: "while (${1:condition}) {\n\t${0}\n}", doc: "Standard while loop" },
+        { label: "struct definition", detail: "struct Name { ... };", insertText: "struct ${1:Name} {\n\t${0}\n};", doc: "Structure declaration" },
+        { label: "typedef struct", detail: "typedef struct { ... } Name;", insertText: "typedef struct {\n\t${0}\n} ${1:Name};", doc: "Typedef structure declaration" },
+      ];
+      cSnippets.forEach((snip) => {
+        suggestions.push({
+          label: snip.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          detail: snip.detail,
+          documentation: snip.doc,
+          insertText: snip.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      return { suggestions };
+    },
+  });
+
+  // ---------------------------------------------------------------------------
+  // C++ COMPLETION PROVIDER
+  // ---------------------------------------------------------------------------
+  monaco.languages.registerCompletionItemProvider("cpp", {
+    triggerCharacters: [".", ">", ":", " ", "<", "#"],
+    provideCompletionItems(model, position) {
+      const wordInfo = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: wordInfo.startColumn,
+        endColumn: wordInfo.endColumn,
+      };
+
+      const suggestions = [];
+
+      // C++ Keywords & Types
+      const cppKeywords = [
+        "int", "char", "float", "double", "void", "short", "long", "unsigned",
+        "signed", "bool", "auto", "nullptr", "return", "if", "else", "for",
+        "while", "do", "switch", "case", "default", "break", "continue", "goto",
+        "class", "struct", "union", "enum", "typedef", "typename", "template",
+        "namespace", "using", "public", "private", "protected", "virtual",
+        "override", "final", "constexpr", "const", "static", "volatile",
+        "mutable", "explicit", "friend", "inline", "throw", "try", "catch",
+        "new", "delete", "this", "sizeof", "decltype", "static_cast",
+        "dynamic_cast", "const_cast", "reinterpret_cast", "true", "false", "NULL"
+      ];
+      cppKeywords.forEach((kw) => {
+        suggestions.push({
+          label: kw,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: kw,
+          range,
+        });
+      });
+
+      // C++ Standard Library Objects & Functions
+      const cppStdlib = [
+        { label: "std::cout", detail: "std::ostream cout", insertText: "std::cout << ${1:value} << std::endl;", doc: "Standard character output stream" },
+        { label: "std::cin", detail: "std::istream cin", insertText: "std::cin >> ${1:var};", doc: "Standard character input stream" },
+        { label: "std::cerr", detail: "std::ostream cerr", insertText: "std::cerr << ${1:error} << std::endl;", doc: "Standard error stream" },
+        { label: "std::endl", detail: "std::endl", insertText: "std::endl", doc: "Inserts newline character and flushes stream" },
+        { label: "std::getline", detail: "std::getline(istream&, string&)", insertText: "std::getline(std::cin, ${1:str});", doc: "Reads a line from stream into string" },
+        { label: "std::vector", detail: "std::vector<T>", insertText: "std::vector<${1:int}> ${2:vec};", doc: "Dynamic sequence container" },
+        { label: "std::string", detail: "std::string", insertText: "std::string ${1:str};", doc: "String container" },
+        { label: "std::map", detail: "std::map<Key, Value>", insertText: "std::map<${1:key_type}, ${2:val_type}> ${3:map};", doc: "Ordered associative key-value container" },
+        { label: "std::unordered_map", detail: "std::unordered_map<Key, Value>", insertText: "std::unordered_map<${1:key_type}, ${2:val_type}> ${3:map};", doc: "Hash table associative container" },
+        { label: "std::set", detail: "std::set<T>", insertText: "std::set<${1:int}> ${2:set};", doc: "Ordered associative container of unique keys" },
+        { label: "std::unordered_set", detail: "std::unordered_set<T>", insertText: "std::unordered_set<${1:int}> ${2:set};", doc: "Hash table unique keys container" },
+        { label: "std::pair", detail: "std::pair<T1, T2>", insertText: "std::pair<${1:int}, ${2:int}> ${3:p};", doc: "Two-element heterogeneous tuple" },
+        { label: "std::make_pair", detail: "std::make_pair(a, b)", insertText: "std::make_pair(${1:a}, ${2:b})", doc: "Constructs a std::pair" },
+        { label: "std::sort", detail: "std::sort(first, last)", insertText: "std::sort(${1:vec}.begin(), ${1:vec}.end());", doc: "Sorts elements in range in ascending order" },
+        { label: "std::reverse", detail: "std::reverse(first, last)", insertText: "std::reverse(${1:vec}.begin(), ${1:vec}.end());", doc: "Reverses order of elements in range" },
+        { label: "std::min", detail: "std::min(a, b)", insertText: "std::min(${1:a}, ${2:b})", doc: "Returns smaller of two values" },
+        { label: "std::max", detail: "std::max(a, b)", insertText: "std::max(${1:a}, ${2:b})", doc: "Returns greater of two values" },
+        { label: "std::swap", detail: "std::swap(a, b)", insertText: "std::swap(${1:a}, ${2:b});", doc: "Swaps values of two objects" },
+        { label: "std::find", detail: "std::find(first, last, val)", insertText: "std::find(${1:vec}.begin(), ${1:vec}.end(), ${2:val})", doc: "Finds element in range" },
+        { label: "std::to_string", detail: "std::to_string(val)", insertText: "std::to_string(${1:val})", doc: "Converts numerical value to std::string" },
+        { label: "std::stoi", detail: "std::stoi(str)", insertText: "std::stoi(${1:str})", doc: "Converts string to integer" },
+        { label: "push_back", detail: "vec.push_back(val)", insertText: "push_back(${1:val});", doc: "Adds element to end of container" },
+        { label: "emplace_back", detail: "vec.emplace_back(args...)", insertText: "emplace_back(${1:args});", doc: "Constructs element in-place at end" },
+        { label: "size", detail: "container.size()", insertText: "size()", doc: "Returns number of elements in container" },
+        { label: "empty", detail: "container.empty()", insertText: "empty()", doc: "Checks whether container is empty" },
+        { label: "clear", detail: "container.clear()", insertText: "clear();", doc: "Clears contents of container" },
+      ];
+      cppStdlib.forEach((item) => {
+        suggestions.push({
+          label: item.label,
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: item.detail,
+          documentation: item.doc,
+          insertText: item.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      // C++ Snippets
+      const cppSnippets = [
+        { label: "#include <iostream>", detail: "I/O stream header", insertText: "#include <iostream>", doc: "Standard C++ stream I/O" },
+        { label: "#include <vector>", detail: "Dynamic array header", insertText: "#include <vector>", doc: "Sequence container representing arrays that can change size" },
+        { label: "#include <string>", detail: "String header", insertText: "#include <string>", doc: "Standard string container" },
+        { label: "#include <algorithm>", detail: "Algorithms header", insertText: "#include <algorithm>", doc: "Standard algorithms (sort, reverse, find, etc.)" },
+        { label: "#include <map>", detail: "Map associative container header", insertText: "#include <map>", doc: "Ordered key-value map container" },
+        { label: "#include <set>", detail: "Set associative container header", insertText: "#include <set>", doc: "Ordered set container" },
+        { label: "#include <cmath>", detail: "C math functions header", insertText: "#include <cmath>", doc: "Common mathematical operations" },
+        { label: "#include <bits/stdc++.h>", detail: "GCC all-in-one header", insertText: "#include <bits/stdc++.h>", doc: "Includes all standard library headers (GCC)" },
+        { label: "using namespace std;", detail: "using directive", insertText: "using namespace std;", doc: "Brings entire std namespace into global scope" },
+        { label: "main", detail: "int main() { ... }", insertText: "int main() {\n\t${0}\n\treturn 0;\n}", doc: "Main program entry point" },
+        { label: "main args", detail: "int main(int argc, char *argv[])", insertText: "int main(int argc, char *argv[]) {\n\t${0}\n\treturn 0;\n}", doc: "Main program entry point with arguments" },
+        { label: "cout", detail: "std::cout << ... << std::endl;", insertText: "std::cout << ${1:\"Hello\"} << std::endl;", doc: "Print output to stdout" },
+        { label: "cin", detail: "std::cin >> ...;", insertText: "std::cin >> ${1:var};", doc: "Read input from stdin" },
+        { label: "for range loop", detail: "for (const auto &item : items)", insertText: "for (const auto &${1:item} : ${2:items}) {\n\t${0}\n}", doc: "Range-based for loop" },
+        { label: "for loop", detail: "for (int i = 0; i < n; ++i)", insertText: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ++${1:i}) {\n\t${0}\n}", doc: "Standard indexed for loop" },
+        { label: "while loop", detail: "while (...) { ... }", insertText: "while (${1:condition}) {\n\t${0}\n}", doc: "Standard while loop" },
+        { label: "class definition", detail: "class Name { ... };", insertText: "class ${1:ClassName} {\npublic:\n\t${1:ClassName}() = default;\n\t~${1:ClassName}() = default;\n\nprivate:\n\t${0}\n};", doc: "Class declaration" },
+        { label: "struct definition", detail: "struct Name { ... };", insertText: "struct ${1:Name} {\n\t${0}\n};", doc: "Structure declaration" },
+        { label: "template function", detail: "template <typename T> ...", insertText: "template <typename ${1:T}>\n${2:void} ${3:funcName}(${1:T} ${4:arg}) {\n\t${0}\n}", doc: "Template function definition" },
+        { label: "try catch", detail: "try { ... } catch (...) { ... }", insertText: "try {\n\t${0}\n} catch (const std::exception &${1:e}) {\n\tstd::cerr << ${1:e}.what() << std::endl;\n}", doc: "Exception handling block" },
+      ];
+      cppSnippets.forEach((snip) => {
+        suggestions.push({
+          label: snip.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          detail: snip.detail,
+          documentation: snip.doc,
+          insertText: snip.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      return { suggestions };
+    },
+  });
 }
 
 // -----------------------------------------------------------------------------

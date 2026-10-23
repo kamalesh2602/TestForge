@@ -37,6 +37,43 @@ export const documentationCategories = [
         ],
       },
       {
+        id: "c",
+        name: "C",
+        resources: [
+          {
+            title: "W3Schools C Tutorial",
+            url: "https://www.w3schools.com/c/",
+            type: "Learning",
+          },
+          {
+            title: "cppreference.com (C Reference)",
+            url: "https://en.cppreference.com/w/c",
+            type: "Reference",
+          },
+        ],
+      },
+      {
+        id: "cpp",
+        name: "C++",
+        resources: [
+          {
+            title: "cppreference.com (C++ Reference)",
+            url: "https://en.cppreference.com/w/cpp",
+            type: "Reference",
+          },
+          {
+            title: "LearnCpp.com",
+            url: "https://www.learncpp.com/",
+            type: "Tutorial",
+          },
+          {
+            title: "W3Schools C++ Tutorial",
+            url: "https://www.w3schools.com/cpp/",
+            type: "Learning",
+          },
+        ],
+      },
+      {
         id: "html",
         name: "HTML",
         resources: [

@@ -4,4 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  test: {
+    server: {
+      deps: {
+        inline: ["@wasm-fmt/clang-format"],
+      },
+    },
+  },
 });

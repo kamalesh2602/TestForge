@@ -20,6 +20,28 @@ def test_execute_request_defaults():
     assert req.stdin == ""
 
 
+def test_execute_request_supports_c():
+    req = ExecuteRequest(code='#include <stdio.h>\nint main() { return 0; }', language="c", stdin="123")
+    assert req.language == "c"
+    assert req.stdin == "123"
+
+
+def test_execute_request_supports_cpp():
+    req = ExecuteRequest(code='#include <iostream>\nint main() { return 0; }', language="cpp", stdin="123")
+    assert req.language == "cpp"
+    assert req.stdin == "123"
+
+    req_alias = ExecuteRequest(code='#include <iostream>\nint main() { return 0; }', language="c++", stdin="456")
+    assert req_alias.language == "c++"
+    assert req_alias.stdin == "456"
+
+
+def test_execute_request_supports_bash():
+    req = ExecuteRequest(code='echo "Hello"', language="bash", stdin="42")
+    assert req.language == "bash"
+    assert req.stdin == "42"
+
+
 def test_test_generation_request_valid():
     req = TestGenerationRequest(code="def foo(): pass", language="javascript", count=3)
     assert req.count == 3

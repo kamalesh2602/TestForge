@@ -47,6 +47,42 @@ class Executor(ABC):
         pass
 
     @abstractmethod
+    def execute_c(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    def execute_cpp(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    def execute_bash(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    def execute_go(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        pass
+
+    @abstractmethod
     def validate_java(
         self,
         code: str,

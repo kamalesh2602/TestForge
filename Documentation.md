@@ -185,23 +185,14 @@ TestForge is structured as a decoupled client-server web application.
 
 ## 5. Supported Languages
 
-| Language | Extension | Version / Engine | Analysis Strategy | Execution Pipeline |
-|---|---|---|---|---|
-| **Python** | `.py` | Python 3.11+ | Native `ast` module parsing | AST node inspection & wrapper script (Docker / Judge0) |
-| **Java** | `.java` | OpenJDK 17+ | `javac` compilation check & regex method extraction | Generated `Main` class wrapper (Docker / Judge0) |
-| **JavaScript** | `.js` | Node.js | Syntax check with `node --check` & regex function detection | Node spread operator (`...args`) harness (Docker / Judge0) |
-| **C** | `.c` | GCC / C11+ | Direct execution pipeline | Compiled and executed through Judge0 or Docker GCC sandbox |
-| **C++** | `.cpp` | G++ / C++17+ | Direct execution pipeline | Compiled and executed through Judge0 or Docker G++ sandbox |
-| **Bash** | `.sh` | Bash 5.x | Direct execution pipeline | Shell scripts executed through configured Judge0 integration |
-| **Go** | `.go` | Go 1.x | Direct execution pipeline | Go programs compiled and executed through Judge0 execution pipeline |
-| **HTML** | `.html` | Browser DOM | Native Monaco HTML syntax & autocompletion | Sandboxed `<iframe>` rendering with internal CSS support |
-
-TestForge provides unified execution flow, standard input support, and robust output/error handling across all supported languages:
-- **Bash** (`.sh`) — shell scripts executed through the configured Judge0 integration (language ID `46` on `ce.judge0.com`, configurable via `JUDGE0_BASH_LANGUAGE_ID` or discovered via the `/languages` endpoint). Executes within the standard execution flow, passing `stdin` to the script, capturing stdout, stderr, non-zero exit codes, and timeout limits.
-- **Go** (`.go`) — Go programs executed through the existing Judge0 execution pipeline (language ID `60` on `ce.judge0.com`, configurable via `JUDGE0_GO_LANGUAGE_ID` or discovered dynamically via `/languages`). Executes with standard input support and structured output/error formatting for compilation and runtime results.
-- **C** (`.c`) — C programs compiled and executed through Judge0 (default language ID `103`, configurable via `JUDGE0_C_LANGUAGE_ID`) or local Docker (`gcc:latest`). Follows the existing execution flow, passing `stdin` input, capturing `stdout`, compilation errors (`compile_output`), runtime errors (`stderr`), exit codes, and timeouts.
-- **C++** (`.cpp`) — C++ programs compiled and executed through Judge0 (default language ID `105`, configurable via `JUDGE0_CPP_LANGUAGE_ID`) or local Docker (`gcc:latest` with `g++`). Follows the standard execution flow with `stdin` support, compile and runtime error capture, exit code, and timeout status.
-- **Execution Flow & Error Handling**: All newly supported languages (Bash, Go, C, C++) share TestForge's unified execution flow. Standard input (`stdin`) is passed into the execution environment, while outputs, error messages (`stderr`/`compile_output`), exit codes, and timeouts are normalized into the platform's standard execution response model (`status`: `completed`, `error`, or `timeout`).
+| Language | Version / Engine | Analysis Strategy | Execution Harness |
+|---|---|---|---|
+| **Python** | Python 3.11+ | Native `ast` module parsing | AST node inspection & wrapper script |
+| **Java** | OpenJDK 17+ | `javac` compilation check & regex method extraction | Generated `Main` class wrapper |
+| **C** | GCC / Clang | Monaco C syntax & IntelliSense | Direct execution via Judge0 / GCC Docker sandbox |
+| **C++** | G++ / Clang | Monaco C++ syntax & IntelliSense | Direct execution via Judge0 / G++ Docker sandbox |
+| **JavaScript** | Node.js | Syntax check with `node --check` & regex function detection | Node spread operator (`...args`) harness |
+| **HTML** | Browser DOM | Native Monaco HTML syntax & autocompletion | Sandboxed `<iframe>` rendering with internal CSS support |
 
 ---
 
