@@ -130,8 +130,8 @@ TestForge is structured as a decoupled client-server web application.
 
 ### Code Execution
 - Implements an **Executor Factory Pattern** (`services/executor_factory.py`).
-- Supports **Docker Sandboxing** (`docker_executor.py`) with memory, CPU, network, and timeout constraints.
-- Supports **Judge0 API** (`judge0_executor.py`) as an external cloud execution option.
+- Supports **Docker Sandboxing** (`docker_executor.py`) with memory, CPU, network, and timeout constraints for Python, Java, JavaScript, C, and C++.
+- Supports **Judge0 API** (`judge0_executor.py`) as an external cloud execution option for Python, Java, JavaScript, C, C++, Bash, and Go.
 
 ### AI Testing Pipeline
 - Primary Provider: **Google Gemini API** (`google-genai` SDK using `gemini-3.6-flash`).
@@ -143,7 +143,8 @@ TestForge is structured as a decoupled client-server web application.
 ## 4. Features
 
 ### Normal Code Execution (IDE Mode)
-- Executes arbitrary user code (Python, Java, JavaScript) directly.
+- Executes arbitrary user code across supported languages (Python, Java, JavaScript, C, C++, Bash, Go) directly.
+- Supports standard input (STDIN), compilation/execution error capture, exit code reporting, and execution timeouts.
 - Displays stdout, stderr, execution status (`completed`, `error`, `timeout`), and execution duration.
 
 ### AI Testing Mode
@@ -174,8 +175,8 @@ TestForge is structured as a decoupled client-server web application.
 - Dedicated STDIN panel for passing multi-line input data to interactive programs.
 
 ### Save and Upload
-- **Upload File**: Load local code files (`.py`, `.java`, `.js`, `.txt`) into the Monaco editor.
-- **Save File**: Download the current editor contents with appropriate file extensions.
+- **Upload File**: Load local code files (`.py`, `.java`, `.js`, `.c`, `.cpp`, `.sh`, `.go`, `.txt`) into the Monaco editor.
+- **Save File**: Download the current editor contents with appropriate file extensions (`.py`, `.java`, `.js`, `.c`, `.cpp`, `.sh`, `.go`, `.html`).
 
 ### Keyboard Shortcuts
 - Press `Ctrl + Enter` (or `Cmd + Enter`) to trigger **Run Code** in IDE Mode or **Run Selected Tests** in AI Testing Mode.
@@ -184,12 +185,23 @@ TestForge is structured as a decoupled client-server web application.
 
 ## 5. Supported Languages
 
-| Language | Version / Engine | Analysis Strategy | Execution Harness |
-|---|---|---|---|
-| **Python** | Python 3.11+ | Native `ast` module parsing | AST node inspection & wrapper script |
-| **Java** | OpenJDK 17+ | `javac` compilation check & regex method extraction | Generated `Main` class wrapper |
-| **JavaScript** | Node.js | Syntax check with `node --check` & regex function detection | Node spread operator (`...args`) harness |
-| **HTML** | Browser DOM | Native Monaco HTML syntax & autocompletion | Sandboxed `<iframe>` rendering with internal CSS support |
+| Language | Extension | Version / Engine | Analysis Strategy | Execution Pipeline |
+|---|---|---|---|---|
+| **Python** | `.py` | Python 3.11+ | Native `ast` module parsing | AST node inspection & wrapper script (Docker / Judge0) |
+| **Java** | `.java` | OpenJDK 17+ | `javac` compilation check & regex method extraction | Generated `Main` class wrapper (Docker / Judge0) |
+| **JavaScript** | `.js` | Node.js | Syntax check with `node --check` & regex function detection | Node spread operator (`...args`) harness (Docker / Judge0) |
+| **C** | `.c` | GCC / C11+ | Direct execution pipeline | Compiled and executed through Judge0 or Docker GCC sandbox |
+| **C++** | `.cpp` | G++ / C++17+ | Direct execution pipeline | Compiled and executed through Judge0 or Docker G++ sandbox |
+| **Bash** | `.sh` | Bash 5.x | Direct execution pipeline | Shell scripts executed through configured Judge0 integration |
+| **Go** | `.go` | Go 1.x | Direct execution pipeline | Go programs compiled and executed through Judge0 execution pipeline |
+| **HTML** | `.html` | Browser DOM | Native Monaco HTML syntax & autocompletion | Sandboxed `<iframe>` rendering with internal CSS support |
+
+TestForge provides unified execution flow, standard input support, and robust output/error handling across all supported languages:
+- **Bash** (`.sh`) — shell scripts executed through the configured Judge0 integration (language ID `46` on `ce.judge0.com`, configurable via `JUDGE0_BASH_LANGUAGE_ID` or discovered via the `/languages` endpoint). Executes within the standard execution flow, passing `stdin` to the script, capturing stdout, stderr, non-zero exit codes, and timeout limits.
+- **Go** (`.go`) — Go programs executed through the existing Judge0 execution pipeline (language ID `60` on `ce.judge0.com`, configurable via `JUDGE0_GO_LANGUAGE_ID` or discovered dynamically via `/languages`). Executes with standard input support and structured output/error formatting for compilation and runtime results.
+- **C** (`.c`) — C programs compiled and executed through Judge0 (default language ID `103`, configurable via `JUDGE0_C_LANGUAGE_ID`) or local Docker (`gcc:latest`). Follows the existing execution flow, passing `stdin` input, capturing `stdout`, compilation errors (`compile_output`), runtime errors (`stderr`), exit codes, and timeouts.
+- **C++** (`.cpp`) — C++ programs compiled and executed through Judge0 (default language ID `105`, configurable via `JUDGE0_CPP_LANGUAGE_ID`) or local Docker (`gcc:latest` with `g++`). Follows the standard execution flow with `stdin` support, compile and runtime error capture, exit code, and timeout status.
+- **Execution Flow & Error Handling**: All newly supported languages (Bash, Go, C, C++) share TestForge's unified execution flow. Standard input (`stdin`) is passed into the execution environment, while outputs, error messages (`stderr`/`compile_output`), exit codes, and timeouts are normalized into the platform's standard execution response model (`status`: `completed`, `error`, or `timeout`).
 
 ---
 
@@ -313,7 +325,11 @@ cd TestForge
 | `LLM_PROVIDER` | Optional | `gemini` | Primary AI provider (`gemini` or `openrouter`). |
 | `GEMINI_MODEL` | Optional | `gemini-3.6-flash` | Gemini model name identifier. |
 | `EXECUTOR` | Optional | `docker` | Code execution strategy (`docker` or `judge0`). |
-| `JUDGE0_API_URL` | Optional | None | URL of Judge0 service if `EXECUTOR=judge0`. |
+| `JUDGE0_API_URL` | Optional | None | URL of Judge0 service if `EXECUTOR=judge0` (defaults to `https://ce.judge0.com`). |
+| `JUDGE0_C_LANGUAGE_ID` | Optional | `103` | Judge0 language ID override for C execution. |
+| `JUDGE0_CPP_LANGUAGE_ID` | Optional | `105` | Judge0 language ID override for C++ execution. |
+| `JUDGE0_BASH_LANGUAGE_ID` | Optional | `46` / auto | Judge0 language ID override for Bash execution (auto-discovered if omitted). |
+| `JUDGE0_GO_LANGUAGE_ID` | Optional | `60` / auto | Judge0 language ID override for Go execution (auto-discovered if omitted). |
 | `FRONTEND_URL` | Optional | `http://localhost:5173` | Comma-separated CORS allowed origin URLs. |
 
 ### Frontend Variables (`frontend/.env`)
@@ -337,7 +353,7 @@ cd TestForge
   ```
 
 ### `POST /execute`
-- **Purpose**: Executes arbitrary Python, Java, or JavaScript code.
+- **Purpose**: Executes arbitrary user code in supported languages (Python, Java, JavaScript, C, C++, Bash, Go).
 - **Rate Limit**: 10 requests / minute / client.
 - **Request Body**:
   ```json
@@ -347,6 +363,8 @@ cd TestForge
     "language": "python"
   }
   ```
+  *Supported `language` identifiers*: `python`, `java`, `javascript`, `c`, `cpp` (or `c++`), `bash`, `go`.
+- **Execution Flow**: Passes code and optional standard input (`stdin`) to the active execution engine (Docker or Judge0 API). Captures output (`stdout`), compilation/runtime error messages (`stderr`, `compile_output`), exit codes, and execution status (`completed`, `error`, `timeout`).
 - **Response**:
   ```json
   {
@@ -489,13 +507,14 @@ On every push or pull request to the `main` branch, the CI pipeline automaticall
 - **Free Tier Cold Starts**: Render Free backend instances may take up to 50 seconds to wake up if dormant. The `/health` warm-up mechanism mitigates this delay upon opening the app.
 - **LLM Rate Limits & Quotas**: AI test generation relies on external API quotas. If quota or token limits are exceeded, TestForge catches the failure, logs errors server-side, and displays a friendly user notification (`"AI testing is currently unavailable. Please try again later."`).
 - **Sandboxed Scope**: Execution containers strictly isolate network access, restrict memory to 128MB, limit CPU usage to 0.5 cores, and enforce execution timeouts to prevent abuse.
+- **Judge0 Language Runtimes**: Bash and Go execution are supported exclusively via the Judge0 execution pipeline (`EXECUTOR=judge0`). When running with the local Docker executor, requests for Bash or Go return an error specifying that Judge0 is required.
 - **Stateless Workbench**: TestForge does not enforce persistent user logins or database storage; editor drafts are stored locally in the browser's `localStorage`.
 
 ---
 
 ## 14. Future Improvements
 
-- Add support for C, C++, and Go execution harnesses.
+- Add support for AI test generation and function harness analysis for C, C++, Bash, and Go.
 - Provide custom timeout configuration controls in IDE Mode.
 - Support multi-file project analysis and test generation.
 - Implement user accounts and persistent test suite execution history.
