@@ -56,7 +56,7 @@ class ExecuteRequest(BaseModel):
     stdin: str = Field(default="", max_length=MAX_STDIN_LENGTH)
     language: str = Field(
         default="python",
-        pattern="^(python|java|javascript|c|cpp|c\\+\\+|bash)$",
+        pattern="^(python|java|javascript|c|cpp|c\\+\\+|bash|go)$",
     )
 
 

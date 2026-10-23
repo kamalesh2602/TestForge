@@ -395,6 +395,19 @@ class DockerExecutor(Executor):
             "exit_code": 1,
         }
 
+    def execute_go(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        return {
+            "status": "error",
+            "output": "",
+            "error": "Go execution is only supported via Judge0 executor.",
+            "exit_code": 1,
+        }
+
     def validate_javascript(
         self,
         code: str,

@@ -194,6 +194,9 @@ function CodeEditor({
           } else if (language === "bash") {
             filename = "main.sh";
             mimeType = "text/x-sh";
+          } else if (language === "go") {
+            filename = "main.go";
+            mimeType = "text/x-go";
           } else if (language === "html") {
             filename = "testforge.html";
             mimeType = "text/html";
@@ -232,6 +235,7 @@ function CodeEditor({
     if (language === "cpp") return { ext: "cpp", accept: ".cpp,.hpp,.cc,.cxx,.h" };
     if (language === "javascript") return { ext: "js", accept: ".js" };
     if (language === "bash") return { ext: "sh", accept: ".sh,.bash" };
+    if (language === "go") return { ext: "go", accept: ".go" };
     return { ext: "html", accept: ".html,.htm" };
   };
 
@@ -311,6 +315,7 @@ function CodeEditor({
             <option value="cpp">C++</option>
             <option value="javascript">JavaScript</option>
             <option value="bash">Bash</option>
+            <option value="go">Go</option>
             <option value="html">HTML</option>
             <option value="web">Web (HTML + CSS + JS)</option>
           </select>

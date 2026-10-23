@@ -255,6 +255,12 @@ def execute(
             stdin=code_request.stdin,
         )
 
+    if code_request.language == "go":
+        return executor.execute_go(
+            code=code_request.code,
+            stdin=code_request.stdin,
+        )
+
     return executor.execute(
         code=code_request.code,
         stdin=code_request.stdin,
