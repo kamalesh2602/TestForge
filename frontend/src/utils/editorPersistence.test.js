@@ -106,6 +106,19 @@ describe("Editor State and Persistence", () => {
       expect(restored.code).toContain("#include <iostream>");
     });
 
+    it("restores Bash state", () => {
+      const bashState = {
+        code: "#!/usr/bin/env bash\necho 'TestForge Bash'",
+        language: "bash",
+        timestamp: Date.now() - 12 * 60 * 1000,
+      };
+      storage[EDITOR_STORAGE_KEY] = JSON.stringify(bashState);
+
+      const restored = getSavedEditorState();
+      expect(restored.language).toBe("bash");
+      expect(restored.code).toBe("#!/usr/bin/env bash\necho 'TestForge Bash'");
+    });
+
     it("restores standalone HTML state", () => {
       const htmlState = {
         code: "<!DOCTYPE html><html><body><h1>Custom HTML</h1></body></html>",
@@ -243,8 +256,8 @@ describe("Editor State and Persistence", () => {
   });
 
   describe("Language preservation across additions", () => {
-    it("ensures adding C, C++, and Web does not invalidate previously saved Python, Java, or JS states", () => {
-      const languagesToTest = ["python", "java", "javascript", "c", "cpp", "html"];
+    it("ensures adding C, C++, Bash, and Web does not invalidate previously saved Python, Java, or JS states", () => {
+      const languagesToTest = ["python", "java", "javascript", "c", "cpp", "bash", "html"];
 
       for (const lang of languagesToTest) {
         const saved = {
@@ -258,6 +271,11 @@ describe("Editor State and Persistence", () => {
         expect(restored.language).toBe(lang);
         expect(restored.code).toBe(`code for ${lang}`);
       }
+    });
+
+    it("provides valid Bash starter code", () => {
+      expect(STARTER_CODE.bash).toContain("#!/usr/bin/env bash");
+      expect(STARTER_CODE.bash).toContain('echo "Hello from TestForge!"');
     });
   });
 });

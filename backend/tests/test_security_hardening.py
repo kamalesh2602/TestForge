@@ -229,6 +229,7 @@ def test_run_tests_malformed_test_case_rejected():
 # ==============================================================================
 
 def test_unhandled_exception_returns_clean_500_without_stack_trace():
+    app.state.limiter.reset()
     safe_client = TestClient(app, raise_server_exceptions=False)
     with patch("main.executor.execute", side_effect=ZeroDivisionError("Internal division failure")):
         resp = safe_client.post(

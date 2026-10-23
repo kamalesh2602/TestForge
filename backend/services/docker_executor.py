@@ -382,6 +382,19 @@ class DockerExecutor(Executor):
             if container:
                 container.remove(force=True)
 
+    def execute_bash(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        return {
+            "status": "error",
+            "output": "",
+            "error": "Bash execution is only supported via Judge0 executor.",
+            "exit_code": 1,
+        }
+
     def validate_javascript(
         self,
         code: str,

@@ -191,6 +191,9 @@ function CodeEditor({
           } else if (language === "javascript") {
             filename = "main.js";
             mimeType = "text/javascript";
+          } else if (language === "bash") {
+            filename = "main.sh";
+            mimeType = "text/x-sh";
           } else if (language === "html") {
             filename = "testforge.html";
             mimeType = "text/html";
@@ -228,6 +231,7 @@ function CodeEditor({
     if (language === "c") return { ext: "c", accept: ".c,.h" };
     if (language === "cpp") return { ext: "cpp", accept: ".cpp,.hpp,.cc,.cxx,.h" };
     if (language === "javascript") return { ext: "js", accept: ".js" };
+    if (language === "bash") return { ext: "sh", accept: ".sh,.bash" };
     return { ext: "html", accept: ".html,.htm" };
   };
 
@@ -306,6 +310,7 @@ function CodeEditor({
             <option value="c">C</option>
             <option value="cpp">C++</option>
             <option value="javascript">JavaScript</option>
+            <option value="bash">Bash</option>
             <option value="html">HTML</option>
             <option value="web">Web (HTML + CSS + JS)</option>
           </select>
@@ -504,10 +509,10 @@ function CodeEditor({
 
           <Editor
             height="100%"
-            language={language}
+            language={language === "bash" ? "shell" : language}
             value={code}
             onChange={(value) => setCode(value || "")}
-            onMount={(editor, monaco) => handleEditorMount(editor, monaco, language)}
+            onMount={(editor, monaco) => handleEditorMount(editor, monaco, language === "bash" ? "shell" : language)}
             theme="vs-dark"
             options={editorOptions}
           />

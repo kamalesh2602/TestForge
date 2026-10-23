@@ -26,6 +26,28 @@ function input() {
 
 
 
+def get_judge0_bash_language_id(api_url: str | None = None) -> int | None:
+    """
+    Queries the Judge0 /languages endpoint to verify and discover
+    the Bash language ID available on the configured instance.
+    """
+    url = (api_url or os.getenv("JUDGE0_API_URL", "https://ce.judge0.com")).rstrip("/")
+    if not url or url == "your_judge0_url":
+        url = "https://ce.judge0.com"
+    try:
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"{url}/languages")
+            if resp.status_code == 200:
+                languages = resp.json()
+                for item in languages:
+                    name = item.get("name", "").lower()
+                    if "bash" in name:
+                        return item.get("id")
+    except Exception:
+        pass
+    return None
+
+
 class Judge0Executor(Executor):
 
     def __init__(self):
@@ -44,6 +66,9 @@ class Judge0Executor(Executor):
         )
         self.cpp_language_id = int(
             os.getenv("JUDGE0_CPP_LANGUAGE_ID", "105")
+        )
+        self.bash_language_id = int(
+            os.getenv("JUDGE0_BASH_LANGUAGE_ID", "46")
         )
 
     def _submit(
@@ -253,6 +278,26 @@ class Judge0Executor(Executor):
         )
 
         return self._format_result(result)
+
+    def execute_bash(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+
+        result = self._submit(
+            source_code=code,
+            language_id=self.bash_language_id,
+            stdin=stdin,
+            timeout=timeout,
+        )
+
+        return self._format_result(result)
+
+    @classmethod
+    def get_supported_bash_language_id(cls, api_url: str | None = None) -> int | None:
+        return get_judge0_bash_language_id(api_url)
 
     def validate_java(
         self,

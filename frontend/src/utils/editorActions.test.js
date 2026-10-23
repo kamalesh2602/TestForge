@@ -22,6 +22,8 @@ export function getSaveFileInfo(language, activeWebTab = "html", code = "") {
     return { filename: "main.cpp", mimeType: "text/x-c++src" };
   } else if (language === "javascript") {
     return { filename: "main.js", mimeType: "text/javascript" };
+  } else if (language === "bash") {
+    return { filename: "main.sh", mimeType: "text/x-sh" };
   } else if (language === "html") {
     return { filename: "testforge.html", mimeType: "text/html" };
   } else {
@@ -46,6 +48,7 @@ export function getUploadFileInfo(language, activeWebTab = "html") {
   if (language === "c") return { ext: "c", accept: ".c,.h" };
   if (language === "cpp") return { ext: "cpp", accept: ".cpp,.hpp,.cc,.cxx,.h" };
   if (language === "javascript") return { ext: "js", accept: ".js" };
+  if (language === "bash") return { ext: "sh", accept: ".sh,.bash" };
   return { ext: "html", accept: ".html,.htm" };
 }
 
@@ -110,6 +113,12 @@ describe("Run Flow, Keyboard Shortcuts, and File Actions", () => {
       expect(info.mimeType).toBe("text/javascript");
     });
 
+    it("assigns correct filename and MIME type for Bash", () => {
+      const info = getSaveFileInfo("bash");
+      expect(info.filename).toBe("main.sh");
+      expect(info.mimeType).toBe("text/x-sh");
+    });
+
     it("assigns correct filename and MIME type for standalone HTML", () => {
       const info = getSaveFileInfo("html");
       expect(info.filename).toBe("testforge.html");
@@ -153,6 +162,7 @@ describe("Run Flow, Keyboard Shortcuts, and File Actions", () => {
       expect(getUploadFileInfo("python")).toEqual({ ext: "py", accept: ".py" });
       expect(getUploadFileInfo("java")).toEqual({ ext: "java", accept: ".java" });
       expect(getUploadFileInfo("javascript")).toEqual({ ext: "js", accept: ".js" });
+      expect(getUploadFileInfo("bash")).toEqual({ ext: "sh", accept: ".sh,.bash" });
       expect(getUploadFileInfo("html")).toEqual({ ext: "html", accept: ".html,.htm" });
       expect(getUploadFileInfo("web", "html")).toEqual({ ext: "html", accept: ".html,.htm" });
       expect(getUploadFileInfo("web", "css")).toEqual({ ext: "css", accept: ".css" });
@@ -169,6 +179,8 @@ describe("Run Flow, Keyboard Shortcuts, and File Actions", () => {
       expect(STARTER_CODE.c).toContain("int main()");
       expect(STARTER_CODE.cpp).toContain("#include <iostream>");
       expect(STARTER_CODE.cpp).toContain("std::cout");
+      expect(STARTER_CODE.bash).toContain("#!/usr/bin/env bash");
+      expect(STARTER_CODE.bash).toContain("Hello from TestForge!");
       expect(STARTER_CODE.html).toContain("<!DOCTYPE html>");
       expect(STARTER_CODE.web.html).toContain("<!DOCTYPE html>");
       expect(STARTER_CODE.web.css).toContain("body");
@@ -199,8 +211,9 @@ describe("Run Flow, Keyboard Shortcuts, and File Actions", () => {
 
       expect(runAction("c")).toBe("called_backend");
       expect(runAction("cpp")).toBe("called_backend");
+      expect(runAction("bash")).toBe("called_backend");
       expect(runAction("python")).toBe("called_backend");
-      expect(mockExecute).toHaveBeenCalledTimes(3);
+      expect(mockExecute).toHaveBeenCalledTimes(4);
     });
 
     it("prevents double execution while loading", () => {
