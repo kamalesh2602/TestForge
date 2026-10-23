@@ -52,6 +52,50 @@ export const documentationCategories = [
           },
         ],
       },
+      {
+        id: "bash",
+        name: "Bash",
+        resources: [
+          {
+            title: "GNU Bash Reference Manual",
+            url: "https://www.gnu.org/software/bash/manual/",
+            type: "Official",
+          },
+        ],
+      },
+      {
+        id: "go",
+        name: "Go",
+        resources: [
+          {
+            title: "Go Documentation",
+            url: "https://go.dev/doc/",
+            type: "Official",
+          },
+        ],
+      },
+      {
+        id: "rust",
+        name: "Rust",
+        resources: [
+          {
+            title: "The Rust Programming Language",
+            url: "https://doc.rust-lang.org/book/",
+            type: "Official",
+          },
+        ],
+      },
+      {
+        id: "ruby",
+        name: "Ruby",
+        resources: [
+          {
+            title: "Ruby Documentation",
+            url: "https://www.ruby-lang.org/en/documentation/",
+            type: "Official",
+          },
+        ],
+      },
     ],
   },
 
@@ -116,6 +160,28 @@ export const documentationCategories = [
           {
             title: "LangChain Documentation",
             url: "https://docs.langchain.com/",
+            type: "Official",
+          },
+        ],
+      },
+      {
+        id: "nodejs",
+        name: "Node.js",
+        resources: [
+          {
+            title: "Node.js API Documentation",
+            url: "https://nodejs.org/docs/latest/api/",
+            type: "Official",
+          },
+        ],
+      },
+      {
+        id: "expressjs",
+        name: "Express.js",
+        resources: [
+          {
+            title: "Express.js Documentation",
+            url: "https://expressjs.com/",
             type: "Official",
           },
         ],
