@@ -36,6 +36,10 @@ int main() {
     return 0;
 }`,
 
+  bash: `#!/usr/bin/env bash
+
+echo "Hello from TestForge!"`,
+
   html: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -201,7 +205,7 @@ function getSavedEditorState() {
 
     if (
       typeof savedState?.code === "string" &&
-      ["python", "java", "javascript", "html", "c", "cpp"].includes(savedState.language)
+      ["python", "java", "javascript", "html", "c", "cpp", "bash"].includes(savedState.language)
     ) {
       const savedWebCode =
         savedState.webCode &&
@@ -643,7 +647,7 @@ function App() {
           {/* Right Workbench: AI Config & Execution Output Console */}
           <section className="flex flex-col overflow-y-auto overflow-x-hidden bg-[#090d14] p-3 sm:p-4 lg:col-span-5">
             {aiMode ? (
-              (language === "html" || language === "web" || language === "c" || language === "cpp") ? (
+              (language === "html" || language === "web" || language === "c" || language === "cpp" || language === "bash") ? (
                 <div className="flex h-full min-h-[250px] sm:min-h-[300px] lg:min-h-0 flex-col items-center justify-center rounded-xl border border-[#1e293b] bg-[#0f172a] p-6 text-center shadow-md">
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFA239]/10 text-[#FFA239]">
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -651,11 +655,11 @@ function App() {
                     </svg>
                   </div>
                   <h3 className="mb-1 font-mono text-sm font-bold uppercase text-[#FFA239]">
-                    AI Testing Not Available for {language === "web" ? "Web" : language === "cpp" ? "C++" : language.toUpperCase()}
+                    AI Testing Not Available for {language === "web" ? "Web" : language === "cpp" ? "C++" : language === "bash" ? "Bash" : language.toUpperCase()}
                   </h3>
                   <p className="max-w-sm text-xs text-[#8b949e]">
-                    {language === "c" || language === "cpp"
-                      ? `AI test generation is currently supported for Python, Java, and JavaScript. ${language === "cpp" ? "C++" : "C"} programs can be run directly using the IDE mode.`
+                    {language === "c" || language === "cpp" || language === "bash"
+                      ? `AI test generation is currently supported for Python, Java, and JavaScript. ${language === "cpp" ? "C++" : language === "c" ? "C" : "Bash"} scripts can be run directly using the IDE mode.`
                       : `${language === "web" ? "Web projects are" : "HTML is"} rendered directly via the browser preview.`}
                   </p>
                 </div>

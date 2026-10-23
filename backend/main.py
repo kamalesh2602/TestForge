@@ -249,6 +249,12 @@ def execute(
             stdin=code_request.stdin,
         )
 
+    if code_request.language == "bash":
+        return executor.execute_bash(
+            code=code_request.code,
+            stdin=code_request.stdin,
+        )
+
     return executor.execute(
         code=code_request.code,
         stdin=code_request.stdin,

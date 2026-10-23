@@ -36,6 +36,12 @@ def test_execute_request_supports_cpp():
     assert req_alias.stdin == "456"
 
 
+def test_execute_request_supports_bash():
+    req = ExecuteRequest(code='echo "Hello"', language="bash", stdin="42")
+    assert req.language == "bash"
+    assert req.stdin == "42"
+
+
 def test_test_generation_request_valid():
     req = TestGenerationRequest(code="def foo(): pass", language="javascript", count=3)
     assert req.count == 3
