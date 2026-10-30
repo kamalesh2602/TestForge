@@ -13,4 +13,7 @@ RUN uv sync --frozen
 
 COPY . .
 
-CMD [".venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+ENV PORT=8000
+EXPOSE 8000
+
+CMD ["sh", "-c", "exec .venv/bin/uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
