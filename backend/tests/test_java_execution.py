@@ -147,10 +147,11 @@ def test_docker_executor_java_success():
 
 
 def test_docker_executor_java_no_main_method():
-    executor = DockerExecutor()
-    res = executor.execute_java("public class Empty {}")
-    assert res["status"] == "error"
-    assert "No executable main method found" in res["error"]
+    with patch("docker.from_env"):
+        executor = DockerExecutor()
+        res = executor.execute_java("public class Empty {}")
+        assert res["status"] == "error"
+        assert "No executable main method found" in res["error"]
 
 
 def test_api_execute_java_endpoint():
