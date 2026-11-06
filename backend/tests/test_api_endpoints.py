@@ -213,8 +213,8 @@ def test_execute_invalid_language_returns_422():
     response = client.post(
         "/execute",
         json={
-            "code": "echo hi",
-            "language": "bash",
+            "code": "puts 'hi'",
+            "language": "ruby",
         },
     )
     assert response.status_code == 422

@@ -1,3 +1,4 @@
+import base64
 import httpx
 import pytest
 from unittest.mock import MagicMock, patch
@@ -62,7 +63,7 @@ def test_judge0_submit_success():
         mock_client.post.assert_called_once()
         call_json = mock_client.post.call_args[1]["json"]
         assert call_json["language_id"] == 71
-        assert call_json["stdin"] == "input_data"
+        assert call_json["stdin"] == base64.b64encode(b"input_data").decode()
         assert call_json["cpu_time_limit"] == 5
 
 
