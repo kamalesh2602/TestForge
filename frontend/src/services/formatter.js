@@ -6,9 +6,42 @@ import parserPostcss from "prettier/plugins/postcss";
 import prettierPluginJava from "prettier-plugin-java";
 import { formatCodeAPI } from "./api.js";
 import initClangFormat, { format as clangFormat } from "@wasm-fmt/clang-format/vite";
+import initGofmt, { initSync as initSyncGofmt, format as gofmt } from "@wasm-fmt/gofmt/vite";
 
 let clangFormatInitialized = false;
 let clangFormatInitPromise = null;
+
+let gofmtInitialized = false;
+let gofmtInitPromise = null;
+
+async function ensureGofmt() {
+  if (gofmtInitialized) return;
+  if (gofmtInitPromise) return gofmtInitPromise;
+
+  gofmtInitPromise = (async () => {
+    try {
+      if (
+        typeof window === "undefined" &&
+        typeof globalThis !== "undefined" &&
+        Boolean(globalThis.process?.versions?.node)
+      ) {
+        const fsMod = "node:fs/promises";
+        const { readFile } = await import(/* @vite-ignore */ fsMod);
+        const wasmPath = new URL("../../node_modules/@wasm-fmt/gofmt/gofmt.wasm", import.meta.url);
+        const bytes = await readFile(wasmPath);
+        initSyncGofmt(bytes);
+      } else {
+        await initGofmt();
+      }
+      gofmtInitialized = true;
+    } catch (err) {
+      gofmtInitPromise = null;
+      throw err;
+    }
+  })();
+
+  return gofmtInitPromise;
+}
 
 async function ensureClangFormat() {
   if (clangFormatInitialized) return;
@@ -146,6 +179,21 @@ export async function formatCode(code, language) {
       const msg = err.message || "Failed to format C++ code";
       const cleanMsg = msg.split("\n")[0];
       throw new Error(`C++ formatting error: ${cleanMsg}`, { cause: err });
+    }
+  }
+
+  if (language === "go") {
+    try {
+      await ensureGofmt();
+      const formatted = gofmt(code);
+      if (typeof formatted !== "string" || !formatted) {
+        throw new Error("Formatting produced invalid output");
+      }
+      return formatted;
+    } catch (err) {
+      const msg = err.message || "Failed to format Go code";
+      const cleanMsg = msg.split("\n")[0];
+      throw new Error(`Go formatting error: ${cleanMsg}`, { cause: err });
     }
   }
 

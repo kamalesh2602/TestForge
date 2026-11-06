@@ -102,6 +102,66 @@ return 0;
     });
   });
 
+  describe("Go code formatting", () => {
+    it("formats Go code with incorrect indentation", async () => {
+      const unformatted = `package main
+
+import "fmt"
+
+func main() {
+  x := 10
+      if x > 5 {
+    fmt.Println(x)
+      }
+}`;
+      const formatted = await formatCode(unformatted, "go");
+
+      expect(formatted).toContain("func main() {");
+      expect(formatted).toContain("\tx := 10");
+      expect(formatted).toContain("\tif x > 5 {");
+      expect(formatted).toContain("\t\tfmt.Println(x)");
+    });
+
+    it("formats Go code with unnecessary spaces", async () => {
+      const unformatted = `package main
+import ( "fmt" )
+func add( a  int ,  b   int )  int {
+return   a +    b
+}
+func main(  ) {
+fmt.Println( add( 1 , 2 ) )
+}`;
+      const formatted = await formatCode(unformatted, "go");
+
+      expect(formatted).toContain("import (\n\t\"fmt\"\n)");
+      expect(formatted).toContain("func add(a int, b int) int {");
+      expect(formatted).toContain("\treturn a + b");
+      expect(formatted).toContain("func main() {");
+      expect(formatted).toContain("\tfmt.Println(add(1, 2))");
+    });
+
+    it("preserves properly formatted Go code (idempotency)", async () => {
+      const properlyFormatted = `package main
+
+import "fmt"
+
+func main() {
+\tfmt.Println("Hello, World!")
+}
+`;
+      const formatted = await formatCode(properlyFormatted, "go");
+      expect(formatted).toBe(properlyFormatted);
+
+      const reformatted = await formatCode(formatted, "go");
+      expect(reformatted).toBe(formatted);
+    });
+
+    it("handles syntax error in Go code gracefully", async () => {
+      const brokenCode = "package main\nfunc broken(";
+      await expect(formatCode(brokenCode, "go")).rejects.toThrow("Go formatting error:");
+    });
+  });
+
   describe("Regression: Existing languages still work", () => {
     it("formats JavaScript code", async () => {
       const unformatted = "function  test( a, b ){ return a+b;}";
@@ -215,6 +275,13 @@ return 0;
       const java = "public class Solution {\n  public static void main(String[] args) {}\n}\n";
       const formatted = await formatCode(java, "java");
       const second = await formatCode(formatted, "java");
+      expect(second).toBe(formatted);
+    });
+
+    it("preserves formatted code when formatted a second time (Go)", async () => {
+      const goCode = "package main\n\nfunc main() {\n\tprintln(\"test\")\n}\n";
+      const formatted = await formatCode(goCode, "go");
+      const second = await formatCode(formatted, "go");
       expect(second).toBe(formatted);
     });
   });

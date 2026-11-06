@@ -502,7 +502,12 @@ function App() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 w-full sm:w-auto">
           {/* Logo & Mobile Mode Switcher Row */}
           <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setCurrentView("editor")}
+              className="flex items-center gap-3 shrink-0 cursor-pointer text-left focus:outline-none hover:opacity-90 transition-opacity"
+              aria-label="TestForge Home"
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-[#FF5656] to-[#FFA239] font-black text-black text-sm shadow">
                 TF
               </div>
@@ -511,7 +516,7 @@ function App() {
                   Test<span className="text-[#8CE4FF]">Forge</span>
                 </h1>
               </div>
-            </div>
+            </button>
 
             {/* Mobile Mode Selector Pill (visible in Workbench view on mobile only) */}
             {currentView === "editor" && (

@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     server: {
       deps: {
-        inline: ["@wasm-fmt/clang-format"],
+        inline: ["@wasm-fmt/clang-format", "@wasm-fmt/gofmt"],
       },
     },
   },

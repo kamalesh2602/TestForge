@@ -17,12 +17,13 @@ Writing unit test cases manually can be tedious and repetitive. TestForge stream
 
 ## Features
 
-- **Multi-language code execution & preview**: Run Python, Java, C, C++, and JavaScript execution or render HTML web previews directly in the browser workbench.
+- **Multi-language code execution & preview**: Run Python, Java, C, C++, JavaScript, Bash, and Go execution or render HTML web previews directly in the browser workbench.
 - **HTML Web Preview with Internal CSS**: Sandboxed HTML document rendering with embedded `<style>` support, workspace maximization, standalone tab popouts, and automatic tag completion (`<h1>` → `<h1>|</h1>`).
 - **AI-powered test generation**: Generate structured test cases tailored to functions or stdin-based programs.
 - **Editable and selectable test cases**: Modify inputs, expected outputs, arguments, or select specific test cases to run.
-- **Code formatting**: Auto-format Python code (via Black) and HTML/JavaScript/Java code (via Prettier).
+- **Code formatting**: Auto-format Go (via `gofmt` WebAssembly), C/C++ (via Clang-Format), Python (via Black), and HTML/JavaScript/Java (via Prettier).
 - **IntelliSense / code suggestions**: In-editor autocompletion for language keywords, standard libraries, and built-in functions.
+- **Interactive branding & navigation**: Clickable TestForge application logo enabling quick redirection to the starter workbench page.
 - **Persistent editor state**: Automatically saves draft code and language selection locally across page reloads.
 - **Dynamic STDIN input**: Pass custom standard input data for program executions in IDE Mode.
 - **Save and upload code**: Download source code files locally or upload existing source files directly into the editor.
@@ -35,11 +36,13 @@ Writing unit test cases manually can be tedious and repetitive. TestForge stream
 - **C** (GCC / Clang)
 - **C++** (G++ / Clang)
 - **JavaScript** (Node.js)
+- **Go** (Go 1.20+ / `gofmt` formatting)
+- **Bash** (Bash 5+)
 - **HTML** (Browser-based DOM & internal CSS preview)
 
 ## Tech Stack
 
-- **Frontend**: React 19, Vite, Tailwind CSS v4, Monaco Editor (`@monaco-editor/react`), Prettier
+- **Frontend**: React 19, Vite, Tailwind CSS v4, Monaco Editor (`@monaco-editor/react`), Prettier, `@wasm-fmt/clang-format`, `@wasm-fmt/gofmt`
 - **Backend**: Python 3.11+, FastAPI, SlowAPI, Pydantic v2, `uv` package manager
 - **Execution and Sandboxing**: Judge0 API and Docker-based execution environments where applicable
 - **AI / LLM Integration**: Google Gemini (`google-genai`), OpenRouter fallback API

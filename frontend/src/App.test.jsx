@@ -22,6 +22,7 @@ describe("App Root Component (frontend/src/App.jsx)", () => {
     const html = renderToString(<App />);
 
     expect(html).toContain("Forge");
+    expect(html).toContain("aria-label=\"TestForge Home\"");
     expect(html).toContain("Workbench");
     expect(html).toContain("Resources");
     expect(html).toContain("Source Code");
