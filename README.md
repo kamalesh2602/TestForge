@@ -1,5 +1,23 @@
 # TestForge
 
+<p align="center">
+  <a href="https://github.com/kamalesh2602/TestForge/actions/workflows/ci.yml">
+    <img src="https://github.com/kamalesh2602/TestForge/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+  </a>
+  <a href="https://github.com/kamalesh2602/TestForge/issues">
+    <img src="https://img.shields.io/github/issues/kamalesh2602/TestForge" alt="GitHub Issues" />
+  </a>
+  <a href="https://github.com/kamalesh2602/TestForge/pulls">
+    <img src="https://img.shields.io/github/issues-pr/kamalesh2602/TestForge" alt="Pull Requests" />
+  </a>
+  <a href="https://github.com/kamalesh2602/TestForge/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/kamalesh2602/TestForge" alt="License" />
+  </a>
+  <a href="https://test-forge-ebon.vercel.app/">
+    <img src="https://img.shields.io/badge/Live-Demo-brightgreen?style=flat&logo=vercel" alt="Live Demo" />
+  </a>
+</p>
+
 TestForge is a modern developer workbench that combines sandboxed multi-language code execution with AI-powered automated test generation. It allows developers to write, format, and execute code in Python, Java, JavaScript, C, C++, Bash, and Go, alongside browser-based HTML previews. Developers can also generate, customize, and run test harnesses against supported programs and functions.
 
 ## Live
@@ -57,19 +75,24 @@ TestForge/
 │   ├── src/               # Workbench components, services, and editor utilities
 │   └── package.json
 ├── backend/               # FastAPI application
-│   ├── main.py            # API routes and server initialization
+│   ├── main.py             # API routes and server initialization
 │   ├── models/             # Pydantic data schemas
 │   ├── services/           # Analysis, execution, harness, and AI services
 │   └── tests/              # Backend automated tests
-├── .github/workflows/      # GitHub Actions CI workflow
-├── README.md               # Project introduction and overview
-└── Documentation.md        # Comprehensive technical reference
+├── .github/workflows/     # GitHub Actions CI workflow
+├── README.md              # Project introduction and overview
+└── Documentation.md       # Comprehensive technical reference
 ```
 
 ## Documentation
 
 For detailed technical documentation, local setup instructions, architecture, API reference, and deployment details, see [Documentation.md](Documentation.md).
 
+## Contributing
+
+Contributions are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting a pull request.
+
 ## Repository
 
 [GitHub Repository](https://github.com/kamalesh2602/TestForge)
+
