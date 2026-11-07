@@ -83,6 +83,15 @@ class Executor(ABC):
         pass
 
     @abstractmethod
+    def execute_rust(
+        self,
+        code: str,
+        stdin: str = "",
+        timeout: int = 5,
+    ) -> dict:
+        pass
+
+    @abstractmethod
     def validate_java(
         self,
         code: str,

@@ -68,7 +68,7 @@ function CodeEditor({
     if (!registeredProviders.current) {
       registeredProviders.current = true;
       registerCompletionProviders(monaco);
-      ["javascript", "java", "python", "html", "css", "c", "cpp", "go"].forEach((langId) => {
+      ["javascript", "java", "python", "html", "css", "c", "cpp", "go", "rust"].forEach((langId) => {
         monaco.languages.registerDocumentFormattingEditProvider(langId, {
           async provideDocumentFormattingEdits(model) {
             try {
@@ -197,6 +197,9 @@ function CodeEditor({
           } else if (language === "go") {
             filename = "main.go";
             mimeType = "text/x-go";
+          } else if (language === "rust") {
+            filename = "main.rs";
+            mimeType = "text/rust";
           } else if (language === "html") {
             filename = "testforge.html";
             mimeType = "text/html";
@@ -236,6 +239,7 @@ function CodeEditor({
     if (language === "javascript") return { ext: "js", accept: ".js" };
     if (language === "bash") return { ext: "sh", accept: ".sh,.bash" };
     if (language === "go") return { ext: "go", accept: ".go" };
+    if (language === "rust") return { ext: "rs", accept: ".rs" };
     return { ext: "html", accept: ".html,.htm" };
   };
 
@@ -316,6 +320,7 @@ function CodeEditor({
             <option value="javascript">JavaScript</option>
             <option value="bash">Bash</option>
             <option value="go">Go</option>
+            <option value="rust">Rust</option>
             <option value="html">HTML</option>
             <option value="web">Web (HTML + CSS + JS)</option>
           </select>

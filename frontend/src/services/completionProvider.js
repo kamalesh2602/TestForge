@@ -523,6 +523,233 @@ export function registerCompletionProviders(monaco) {
       return { suggestions };
     },
   });
+
+  // ---------------------------------------------------------------------------
+  // RUST COMPLETION PROVIDER
+  // ---------------------------------------------------------------------------
+  monaco.languages.registerCompletionItemProvider("rust", {
+    triggerCharacters: [":", ".", " ", "!", ">"],
+    provideCompletionItems(model, position) {
+      const wordInfo = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: wordInfo.startColumn,
+        endColumn: wordInfo.endColumn,
+      };
+
+      const suggestions = [];
+
+      // Rust Keywords
+      const keywords = [
+        "as", "async", "await", "break", "const", "continue", "crate", "dyn",
+        "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in",
+        "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return",
+        "self", "Self", "static", "struct", "super", "trait", "true", "type",
+        "unsafe", "use", "where", "while"
+      ];
+      keywords.forEach((kw) => {
+        suggestions.push({
+          label: kw,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          detail: `keyword ${kw}`,
+          insertText: kw,
+          range,
+        });
+      });
+
+      // Rust Primitive Types
+      const primitiveTypes = [
+        { name: "i8", desc: "8-bit signed integer" },
+        { name: "i16", desc: "16-bit signed integer" },
+        { name: "i32", desc: "32-bit signed integer" },
+        { name: "i64", desc: "64-bit signed integer" },
+        { name: "i128", desc: "128-bit signed integer" },
+        { name: "isize", desc: "Pointer-sized signed integer" },
+        { name: "u8", desc: "8-bit unsigned integer" },
+        { name: "u16", desc: "16-bit unsigned integer" },
+        { name: "u32", desc: "32-bit unsigned integer" },
+        { name: "u64", desc: "64-bit unsigned integer" },
+        { name: "u128", desc: "128-bit unsigned integer" },
+        { name: "usize", desc: "Pointer-sized unsigned integer" },
+        { name: "f32", desc: "32-bit floating point" },
+        { name: "f64", desc: "64-bit floating point" },
+        { name: "bool", desc: "Boolean type (true or false)" },
+        { name: "char", desc: "4-byte Unicode scalar value" },
+        { name: "str", desc: "String slice primitive" },
+      ];
+      primitiveTypes.forEach((t) => {
+        suggestions.push({
+          label: t.name,
+          kind: monaco.languages.CompletionItemKind.TypeParameter,
+          detail: t.desc,
+          insertText: t.name,
+          range,
+        });
+      });
+
+      // Rust Standard Library Types & Enums
+      const stdTypes = [
+        { name: "String", detail: "std::string::String (growable UTF-8 string)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "Vec", detail: "std::vec::Vec<T> (growable array)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "Option", detail: "enum Option<T> { Some(T), None }", kind: monaco.languages.CompletionItemKind.Enum },
+        { name: "Some", detail: "Option::Some(value)", kind: monaco.languages.CompletionItemKind.EnumMember },
+        { name: "None", detail: "Option::None", kind: monaco.languages.CompletionItemKind.EnumMember },
+        { name: "Result", detail: "enum Result<T, E> { Ok(T), Err(E) }", kind: monaco.languages.CompletionItemKind.Enum },
+        { name: "Ok", detail: "Result::Ok(value)", kind: monaco.languages.CompletionItemKind.EnumMember },
+        { name: "Err", detail: "Result::Err(err)", kind: monaco.languages.CompletionItemKind.EnumMember },
+        { name: "Box", detail: "std::boxed::Box<T> (heap allocation)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "Rc", detail: "std::rc::Rc<T> (reference counting)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "Arc", detail: "std::sync::Arc<T> (atomic reference counting)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "RefCell", detail: "std::cell::RefCell<T> (interior mutability)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "Mutex", detail: "std::sync::Mutex<T> (mutual exclusion primitive)", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "HashMap", detail: "std::collections::HashMap<K, V>", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "HashSet", detail: "std::collections::HashSet<T>", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "BTreeMap", detail: "std::collections::BTreeMap<K, V>", kind: monaco.languages.CompletionItemKind.Class },
+        { name: "BTreeSet", detail: "std::collections::BTreeSet<T>", kind: monaco.languages.CompletionItemKind.Class },
+      ];
+      stdTypes.forEach((item) => {
+        suggestions.push({
+          label: item.name,
+          kind: item.kind,
+          detail: item.detail,
+          insertText: item.name,
+          range,
+        });
+      });
+
+      // Rust Standard Library Traits
+      const stdTraits = [
+        "Clone", "Copy", "Debug", "Default", "Display", "Drop", "Eq", "PartialEq",
+        "Ord", "PartialOrd", "Hash", "Iterator", "Into", "From", "AsRef", "AsMut",
+        "Send", "Sync"
+      ];
+      stdTraits.forEach((traitName) => {
+        suggestions.push({
+          label: traitName,
+          kind: monaco.languages.CompletionItemKind.Interface,
+          detail: `trait std::${traitName}`,
+          insertText: traitName,
+          range,
+        });
+      });
+
+      // Rust Standard Macros
+      const macros = [
+        { name: "println!", snippet: 'println!("${1:format}", ${2:args});', detail: 'println!("...", ...)' },
+        { name: "print!", snippet: 'print!("${1:format}", ${2:args});', detail: 'print!("...", ...)' },
+        { name: "eprintln!", snippet: 'eprintln!("${1:format}", ${2:args});', detail: 'eprintln!("...", ...)' },
+        { name: "eprint!", snippet: 'eprint!("${1:format}", ${2:args});', detail: 'eprint!("...", ...)' },
+        { name: "format!", snippet: 'format!("${1:format}", ${2:args})', detail: 'format!("...", ...)' },
+        { name: "vec!", snippet: 'vec![${1:elements}]', detail: 'vec![...]' },
+        { name: "panic!", snippet: 'panic!("${1:message}")', detail: 'panic!("...")' },
+        { name: "assert!", snippet: 'assert!(${1:condition});', detail: 'assert!(condition)' },
+        { name: "assert_eq!", snippet: 'assert_eq!(${1:left}, ${2:right});', detail: 'assert_eq!(left, right)' },
+        { name: "assert_ne!", snippet: 'assert_ne!(${1:left}, ${2:right});', detail: 'assert_ne!(left, right)' },
+        { name: "todo!", snippet: 'todo!("${1:reason}")', detail: 'todo!()' },
+        { name: "unimplemented!", snippet: 'unimplemented!()', detail: 'unimplemented!()' },
+        { name: "unreachable!", snippet: 'unreachable!()', detail: 'unreachable!()' },
+      ];
+      macros.forEach((m) => {
+        suggestions.push({
+          label: m.name,
+          kind: monaco.languages.CompletionItemKind.Function,
+          detail: m.detail,
+          insertText: m.snippet,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      // Rust Snippets
+      const rustSnippets = [
+        {
+          label: "fn main",
+          detail: "fn main() { ... }",
+          insertText: "fn main() {\n\t${0}\n}",
+          doc: "Main entry point function",
+        },
+        {
+          label: "fn function",
+          detail: "fn name(args) -> ReturnType { ... }",
+          insertText: "fn ${1:name}(${2:args}) -> ${3:()} {\n\t${0}\n}",
+          doc: "Function definition",
+        },
+        {
+          label: "let mut",
+          detail: "let mut name = value;",
+          insertText: "let mut ${1:name} = ${2:value};",
+          doc: "Mutable variable binding",
+        },
+        {
+          label: "struct definition",
+          detail: "struct Name { ... }",
+          insertText: "struct ${1:Name} {\n\t${2:field}: ${3:Type},\n}",
+          doc: "Struct declaration",
+        },
+        {
+          label: "enum definition",
+          detail: "enum Name { ... }",
+          insertText: "enum ${1:Name} {\n\t${2:Variant},\n}",
+          doc: "Enum declaration",
+        },
+        {
+          label: "impl block",
+          detail: "impl Name { ... }",
+          insertText: "impl ${1:Name} {\n\t${0}\n}",
+          doc: "Implementation block",
+        },
+        {
+          label: "impl trait for type",
+          detail: "impl Trait for Type { ... }",
+          insertText: "impl ${1:Trait} for ${2:Type} {\n\t${0}\n}",
+          doc: "Trait implementation block",
+        },
+        {
+          label: "match expression",
+          detail: "match expr { ... }",
+          insertText: "match ${1:expr} {\n\t${2:pattern} => ${3:expr},\n\t_ => ${4:default},\n}",
+          doc: "Pattern matching construct",
+        },
+        {
+          label: "if let Some",
+          detail: "if let Some(...) = ...",
+          insertText: "if let Some(${1:val}) = ${2:opt} {\n\t${0}\n}",
+          doc: "If let pattern match",
+        },
+        {
+          label: "for in loop",
+          detail: "for item in iter { ... }",
+          insertText: "for ${1:item} in ${2:iter} {\n\t${0}\n}",
+          doc: "Iterator for-loop",
+        },
+        {
+          label: "while loop",
+          detail: "while condition { ... }",
+          insertText: "while ${1:condition} {\n\t${0}\n}",
+          doc: "While loop",
+        },
+      ];
+      rustSnippets.forEach((snip) => {
+        suggestions.push({
+          label: snip.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          detail: snip.detail,
+          documentation: snip.doc,
+          insertText: snip.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        });
+      });
+
+      // Extract user document symbols
+      const docCode = model.getValue();
+      const docSymbols = extractRustDocumentIdentifiers(docCode, range, monaco);
+      suggestions.push(...docSymbols);
+
+      return { suggestions };
+    },
+  });
 }
 
 // -----------------------------------------------------------------------------
@@ -956,7 +1183,7 @@ function extractJavaDocumentIdentifiers(code, range, monaco) {
   }
 
   // Find methods: ReturnType methodName(...)
-  const methodRegex = /\b(?:public|private|protected|static|final|native|synchronized|\s)+[\w<>\[\]]+\s+([a-zA-Z_]\w*)\s*\(/g;
+  const methodRegex = /\b(?:public|private|protected|static|final|native|synchronized|\s)+[\w<>[\]]+\s+([a-zA-Z_]\w*)\s*\(/g;
   while ((match = methodRegex.exec(code)) !== null) {
     const name = match[1];
     if (!seen.has(name) && !["if", "for", "while", "switch", "catch", "main"].includes(name)) {
@@ -967,6 +1194,98 @@ function extractJavaDocumentIdentifiers(code, range, monaco) {
         detail: `User Method: ${name}(...)`,
         insertText: `${name}(\${1})`,
         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        range,
+      });
+    }
+  }
+
+  return items;
+}
+
+// -----------------------------------------------------------------------------
+// Helper: Extract Document Identifiers (Rust)
+// -----------------------------------------------------------------------------
+function extractRustDocumentIdentifiers(code, range, monaco) {
+  const items = [];
+  const seen = new Set();
+  let match;
+
+  // Find functions: fn func_name
+  const fnRegex = /\bfn\s+([a-zA-Z_]\w*)/g;
+  while ((match = fnRegex.exec(code)) !== null) {
+    const name = match[1];
+    if (!seen.has(name) && name !== "main") {
+      seen.add(name);
+      items.push({
+        label: name,
+        kind: monaco.languages.CompletionItemKind.Function,
+        detail: `User Function: fn ${name}(...)`,
+        insertText: `${name}(\${1})`,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        range,
+      });
+    }
+  }
+
+  // Find structs: struct StructName
+  const structRegex = /\bstruct\s+([a-zA-Z_]\w*)/g;
+  while ((match = structRegex.exec(code)) !== null) {
+    const name = match[1];
+    if (!seen.has(name)) {
+      seen.add(name);
+      items.push({
+        label: name,
+        kind: monaco.languages.CompletionItemKind.Struct,
+        detail: `User Struct: struct ${name}`,
+        insertText: name,
+        range,
+      });
+    }
+  }
+
+  // Find enums: enum EnumName
+  const enumRegex = /\benum\s+([a-zA-Z_]\w*)/g;
+  while ((match = enumRegex.exec(code)) !== null) {
+    const name = match[1];
+    if (!seen.has(name)) {
+      seen.add(name);
+      items.push({
+        label: name,
+        kind: monaco.languages.CompletionItemKind.Enum,
+        detail: `User Enum: enum ${name}`,
+        insertText: name,
+        range,
+      });
+    }
+  }
+
+  // Find traits: trait TraitName
+  const traitRegex = /\btrait\s+([a-zA-Z_]\w*)/g;
+  while ((match = traitRegex.exec(code)) !== null) {
+    const name = match[1];
+    if (!seen.has(name)) {
+      seen.add(name);
+      items.push({
+        label: name,
+        kind: monaco.languages.CompletionItemKind.Interface,
+        detail: `User Trait: trait ${name}`,
+        insertText: name,
+        range,
+      });
+    }
+  }
+
+  // Find variables: let [mut] var_name
+  const letRegex = /\blet\s+(?:mut\s+)?([a-zA-Z_]\w*)/g;
+  while ((match = letRegex.exec(code)) !== null) {
+    const name = match[1];
+    if (!seen.has(name)) {
+      seen.add(name);
+      items.push({
+        label: name,
+        kind: monaco.languages.CompletionItemKind.Variable,
+        detail: `User Variable: ${name}`,
+        insertText: name,
         range,
       });
     }

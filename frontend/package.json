@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@scalar/rust-fmt": "^0.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "@wasm-fmt/clang-format": "^23.1.1",
     "@wasm-fmt/gofmt": "^0.7.3",

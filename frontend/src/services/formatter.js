@@ -197,5 +197,20 @@ export async function formatCode(code, language) {
     }
   }
 
+  if (language === "rust") {
+    try {
+      const { format: rustFormat } = await import("@scalar/rust-fmt");
+      const formatted = await rustFormat(code);
+      if (typeof formatted !== "string" || !formatted) {
+        throw new Error("Formatting produced invalid output");
+      }
+      return formatted;
+    } catch (err) {
+      const msg = err.message || "Failed to format Rust code";
+      const cleanMsg = msg.split("\n")[0];
+      throw new Error(`Rust formatting error: ${cleanMsg}`, { cause: err });
+    }
+  }
+
   throw new Error(`Unsupported formatting language: ${language}`);
 }
