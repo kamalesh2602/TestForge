@@ -75,10 +75,10 @@ TestForge/
 │   ├── src/               # Workbench components, services, and editor utilities
 │   └── package.json
 ├── backend/               # FastAPI application
-│   ├── main.py             # API routes and server initialization
-│   ├── models/             # Pydantic data schemas
-│   ├── services/           # Analysis, execution, harness, and AI services
-│   └── tests/              # Backend automated tests
+│   ├── main.py            # API routes and server initialization
+│   ├── models/            # Pydantic data schemas
+│   ├── services/          # Analysis, execution, harness, and AI services
+│   └── tests/             # Backend automated tests
 ├── .github/workflows/     # GitHub Actions CI workflow
 ├── README.md              # Project introduction and overview
 └── Documentation.md       # Comprehensive technical reference
@@ -91,6 +91,14 @@ For detailed technical documentation, local setup instructions, architecture, AP
 ## Contributing
 
 Contributions are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting a pull request.
+
+## 🤝 Contributors
+
+Thanks to everyone who has contributed to TestForge!
+
+<a href="https://github.com/kamalesh2602/TestForge/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=kamalesh2602/TestForge" alt="TestForge Contributors" />
+</a>
 
 ## Repository
 
