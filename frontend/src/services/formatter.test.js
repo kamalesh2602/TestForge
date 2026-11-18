@@ -5,8 +5,8 @@ import * as api from "./api.js";
 describe("Code Formatter Service", () => {
   describe("Language mapping and unsupported languages", () => {
     it("throws an error for unsupported languages", async () => {
-      await expect(formatCode("let x = 10;", "rust")).rejects.toThrow(
-        "Unsupported formatting language: rust"
+      await expect(formatCode("let x = 10;", "ruby")).rejects.toThrow(
+        "Unsupported formatting language: ruby"
       );
     });
 
@@ -162,6 +162,29 @@ func main() {
     });
   });
 
+  describe("Rust code formatting", () => {
+    it("formats poorly formatted Rust code", async () => {
+      const unformatted = 'fn main(){let x=10;println!("{}",x);}';
+      const formatted = await formatCode(unformatted, "rust");
+
+      expect(formatted).toContain("fn main() {");
+      expect(formatted).toContain("    let x = 10;");
+      expect(formatted).toContain('    println!("{}", x);');
+    });
+
+    it("preserves properly formatted Rust code (idempotency)", async () => {
+      const unformatted = 'fn main(){let x=10;println!("{}",x);}';
+      const formatted = await formatCode(unformatted, "rust");
+      const reformatted = await formatCode(formatted, "rust");
+      expect(reformatted).toBe(formatted);
+    });
+
+    it("handles syntax error in Rust code gracefully", async () => {
+      const brokenCode = "fn main() { let x = ; }";
+      await expect(formatCode(brokenCode, "rust")).rejects.toThrow("Rust formatting error:");
+    });
+  });
+
   describe("Regression: Existing languages still work", () => {
     it("formats JavaScript code", async () => {
       const unformatted = "function  test( a, b ){ return a+b;}";
@@ -282,6 +305,13 @@ func main() {
       const goCode = "package main\n\nfunc main() {\n\tprintln(\"test\")\n}\n";
       const formatted = await formatCode(goCode, "go");
       const second = await formatCode(formatted, "go");
+      expect(second).toBe(formatted);
+    });
+
+    it("preserves formatted code when formatted a second time (Rust)", async () => {
+      const rustCode = 'fn main() {\n    let x = 10;\n    println!("{}", x);\n}\n';
+      const formatted = await formatCode(rustCode, "rust");
+      const second = await formatCode(formatted, "rust");
       expect(second).toBe(formatted);
     });
   });
