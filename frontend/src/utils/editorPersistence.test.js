@@ -131,6 +131,19 @@ describe("Editor State and Persistence", () => {
       expect(restored.language).toBe("html");
       expect(restored.code).toContain("<h1>Custom HTML</h1>");
     });
+
+    it("restores Rust state", () => {
+      const rustState = {
+        code: "fn main() {\n    println!(\"Hello from Rust\");\n}",
+        language: "rust",
+        timestamp: Date.now() - 8 * 60 * 1000,
+      };
+      storage[EDITOR_STORAGE_KEY] = JSON.stringify(rustState);
+
+      const restored = getSavedEditorState();
+      expect(restored.language).toBe("rust");
+      expect(restored.code).toBe("fn main() {\n    println!(\"Hello from Rust\");\n}");
+    });
   });
 
   describe("Restoring combined Web mode with independent editor contents", () => {
@@ -229,8 +242,8 @@ describe("Editor State and Persistence", () => {
 
     it("handles unsupported language by discarding and falling back to default", () => {
       const unsupportedState = {
-        code: "fn main() {}",
-        language: "rust",
+        code: "def test; end",
+        language: "ruby",
         timestamp: Date.now() - 1000,
       };
       storage[EDITOR_STORAGE_KEY] = JSON.stringify(unsupportedState);
@@ -257,7 +270,7 @@ describe("Editor State and Persistence", () => {
 
   describe("Language preservation across additions", () => {
     it("ensures adding C, C++, Bash, and Web does not invalidate previously saved Python, Java, or JS states", () => {
-      const languagesToTest = ["python", "java", "javascript", "c", "cpp", "bash", "html"];
+      const languagesToTest = ["python", "java", "javascript", "c", "cpp", "bash", "html", "rust"];
 
       for (const lang of languagesToTest) {
         const saved = {
@@ -276,6 +289,11 @@ describe("Editor State and Persistence", () => {
     it("provides valid Bash starter code", () => {
       expect(STARTER_CODE.bash).toContain("#!/usr/bin/env bash");
       expect(STARTER_CODE.bash).toContain('echo "Hello from TestForge!"');
+    });
+
+    it("provides valid Rust starter code", () => {
+      expect(STARTER_CODE.rust).toContain("fn main()");
+      expect(STARTER_CODE.rust).toContain('println!("Hello from TestForge!");');
     });
   });
 });
